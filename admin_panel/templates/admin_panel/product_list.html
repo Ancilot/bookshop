@@ -1,0 +1,62 @@
+{% extends "admin_panel/base.html" %}
+
+{% block content %}
+
+<h1>Товары</h1>
+
+<a href="{% url 'admin_panel:product_create' %}">
+    Добавить товар
+</a>
+
+<table>
+
+    <tr>
+        <th>Фото</th>
+        <th>Название</th>
+        <th>Цена</th>
+        <th>Категория</th>
+        <th></th>
+    </tr>
+
+    {% for product in products %}
+
+    <tr>
+
+        <td>
+
+            {% if product.get_main_image %}
+
+                <img
+                    src="{{ product.get_main_image.image.url }}"
+                    width="80"
+                >
+
+            {% endif %}
+
+        </td>
+
+        <td>{{ product.name }}</td>
+
+        <td>{{ product.price }}</td>
+
+        <td>{{ product.category.name }}</td>
+
+        <td>
+
+            <a href="{% url 'admin_panel:product_update' product.id %}">
+                Изменить
+            </a>
+
+            <a href="{% url 'admin_panel:product_delete' product.id %}">
+                Удалить
+            </a>
+
+        </td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% endblock %}

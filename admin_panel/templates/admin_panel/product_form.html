@@ -1,0 +1,218 @@
+{% extends "admin_panel/base.html" %}
+
+{% block content %}
+
+<h1>{% if product %}Редактировать{% else %}Добавить{% endif %} товар</h1>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    <!-- PRODUCT -->
+    <h2>Основная информация</h2>
+
+    <div>
+        {{ product_form.name.label_tag }} {{ product_form.name }}<br><br>
+        {{ product_form.price.label_tag }} {{ product_form.price }}<br><br>
+        {{ product_form.description.label_tag }} {{ product_form.description }}<br><br>
+
+        <!-- ВАЖНО: category должен иметь data-slug -->
+        <label for="id_category">Категория</label>
+        <select name="category" id="id_category">
+            {% for cat in product_form.fields.category.queryset %}
+                <option value="{{ cat.id }}"
+                        data-slug="{{ cat.slug }}"
+                        {% if product and product.category.id == cat.id %}selected{% endif %}>
+                    {{ cat.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        {{ product_form.available.label_tag }} {{ product_form.available }}
+    </div>
+
+    <hr>
+
+    <!-- IMAGES -->
+    <h2>Изображения</h2>
+
+    <div id="images-container">
+        <input type="file" name="images" class="image-input">
+    </div>
+
+    <button type="button" id="add-image-btn">+ Добавить ещё</button>
+
+    <hr>
+
+    <div id="images-list">
+        {% for img in images %}
+        <div class="img-item" data-id="{{ img.id }}">
+            <img src="{{ img.image.url }}" width="150">
+
+            <label>
+                <input type="radio"
+                       name="main_image"
+                       value="old_{{ img.id }}"
+                       {% if img.is_main %}checked{% endif %}>
+                Главное
+            </label>
+
+            <button type="button" class="delete-old">✕</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="preview-container"></div>
+
+    <hr>
+
+    <!-- CATEGORY BLOCKS -->
+    <div id="book-fields" style="display:none;">
+        <h2>Книга</h2>
+        {{ book_form.as_p }}
+    </div>
+
+    <div id="game-fields" style="display:none;">
+        <h2>Настольная игра</h2>
+        {{ game_form.as_p }}
+    </div>
+
+    <div id="stationery-fields" style="display:none;">
+        <h2>Канцелярия</h2>
+        {{ stationery_form.as_p }}
+    </div>
+
+    <br>
+
+    <button type="submit">Сохранить</button>
+</form>
+
+<script>
+
+// ================= CATEGORY (SLUG BASED) =================
+
+const categorySelect = document.getElementById('id_category');
+
+const bookFields = document.getElementById('book-fields');
+const gameFields = document.getElementById('game-fields');
+const stationeryFields = document.getElementById('stationery-fields');
+
+function hideAll() {
+    bookFields && (bookFields.style.display = 'none');
+    gameFields && (gameFields.style.display = 'none');
+    stationeryFields && (stationeryFields.style.display = 'none');
+}
+
+function showByCategory() {
+    if (!categorySelect) return;
+
+    const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+    const slug = selectedOption?.dataset?.slug || '';
+
+    hideAll();
+
+    if (slug === 'books') {
+        bookFields && (bookFields.style.display = 'block');
+    }
+
+    else if (slug === 'board-games') {
+        gameFields && (gameFields.style.display = 'block');
+    }
+
+    else if (slug === 'stationery') {
+        stationeryFields && (stationeryFields.style.display = 'block');
+    }
+}
+
+categorySelect?.addEventListener('change', showByCategory);
+window.addEventListener('DOMContentLoaded', showByCategory);
+
+
+// ================= IMAGES =================
+
+const container = document.getElementById('images-container');
+const preview = document.getElementById('preview-container');
+const addBtn = document.getElementById('add-image-btn');
+
+function rebuildPreview() {
+    preview.innerHTML = '';
+
+    document.querySelectorAll('.image-input').forEach((input, index) => {
+
+        if (!input.files.length) return;
+
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+
+            const div = document.createElement('div');
+
+            div.innerHTML = `
+                <img src="${e.target.result}" width="150">
+
+                <label>
+                    <input type="radio"
+                           name="main_image"
+                           value="new_${index}">
+                    Главное
+                </label>
+
+                <button type="button" class="delete-new">✕</button>
+            `;
+
+            preview.appendChild(div);
+
+            div.querySelector('.delete-new').addEventListener('click', () => {
+                input.value = "";
+                div.remove();
+            });
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+
+// ADD IMAGE INPUT
+addBtn.addEventListener('click', () => {
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.name = 'images';
+    input.classList.add('image-input');
+
+    input.addEventListener('change', rebuildPreview);
+
+    container.appendChild(input);
+});
+
+
+// INIT
+document.querySelectorAll('.image-input')
+    .forEach(input => input.addEventListener('change', rebuildPreview));
+
+
+// DELETE OLD IMAGES
+document.addEventListener('click', function(e) {
+
+    if (e.target.classList.contains('delete-old')) {
+
+        const item = e.target.closest('.img-item');
+        const id = item.dataset.id;
+
+        item.remove();
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'delete_image';
+        input.value = id;
+
+        document.querySelector('form').appendChild(input);
+    }
+});
+
+</script>
+
+{% endblock %}

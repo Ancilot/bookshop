@@ -1,0 +1,264 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}
+    {{ product.name }} - Книжный магазин
+{% endblock %}
+
+{% block content %}
+
+<div class="breadcrumbs">
+
+    <a href="{% url 'shop:product_list' %}">
+        Главная
+    </a>
+
+    /
+
+    <a href="{{ product.category.get_absolute_url }}">
+        {{ product.category.name }}
+    </a>
+
+    /
+
+    {{ product.name }}
+
+</div>
+
+<div class="product-detail">
+
+    <div class="product-detail-header">
+
+        <!-- ГАЛЕРЕЯ -->
+        <div class="product-gallery">
+
+            <div class="product-detail-image">
+
+                {% with main_image=product.get_main_image %}
+
+                    {% if main_image %}
+                        <img
+                            src="{{ main_image.image.url }}"
+                            alt="{{ product.name }}"
+                            id="main-product-image"
+                        >
+                    {% else %}
+                        <img
+                            src="{% static 'shop/img/no-image.png' %}"
+                            alt="Нет изображения"
+                            id="main-product-image"
+                        >
+                    {% endif %}
+
+                {% endwith %}
+
+            </div>
+
+            <!-- МИНИАТЮРЫ -->
+            {% if product.images.all %}
+                <div class="gallery-thumbnails">
+
+                    {% for image in product.images.all %}
+                        <img
+                            src="{{ image.image.url }}"
+                            alt="{{ product.name }}"
+                            class="thumbnail"
+                            onclick="changeImage(this)"
+                        >
+                    {% endfor %}
+
+                </div>
+            {% endif %}
+
+        </div>
+
+        <!-- ИНФОРМАЦИЯ -->
+        <div class="product-detail-info">
+
+            <h1>{{ product.name }}</h1>
+
+            <div class="product-price-large">
+                {{ product.price }} ₽
+            </div>
+
+            <div class="product-meta">
+
+                <div class="product-meta-item">
+                    <span class="product-meta-label">
+                        Категория:
+                    </span>
+
+                    {{ product.category.name }}
+                </div>
+
+                <!-- КНИГА -->
+                {% if book %}
+
+                    {% if book.genres.all %}
+                    <div class="product-meta-item">
+
+                        <span class="product-meta-label">
+                            Жанры:
+                        </span>
+
+                        {% for genre in book.genres.all %}
+                            {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+
+                    </div>
+                    {% endif %}
+
+                    {% if book.tags.all %}
+                    <div class="product-meta-item">
+
+                        <span class="product-meta-label">
+                            Теги:
+                        </span>
+
+                        <div class="tags">
+                            {% for tag in book.tags.all %}
+                                <span class="tag">
+                                    {{ tag.name }}
+                                </span>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                    {% endif %}
+
+                    <div class="product-meta-item">
+
+                        <span class="product-meta-label">
+                            Авторы:
+                        </span>
+
+                        {% for author in book.authors.all %}
+                            {{ author }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+
+                    </div>
+
+                    <div class="product-meta-item">
+
+                        <span class="product-meta-label">
+                            Издательство:
+                        </span>
+
+                        {{ book.publisher.name }}
+
+                    </div>
+
+                    <div class="product-meta-item">
+
+                        <span class="product-meta-label">
+                            Год:
+                        </span>
+
+                        {{ book.year }}
+
+                    </div>
+
+                    {% if book.isbn %}
+                    <div class="product-meta-item">
+
+                        <span class="product-meta-label">
+                            ISBN:
+                        </span>
+
+                        {{ book.isbn }}
+
+                    </div>
+                    {% endif %}
+
+                    {% if book.pages %}
+                    <div class="product-meta-item">
+
+                        <span class="product-meta-label">
+                            Страниц:
+                        </span>
+
+                        {{ book.pages }}
+
+                    </div>
+                    {% endif %}
+
+                {% endif %}
+
+                <!-- НАСТОЛКА -->
+                {% if board_game %}
+                    <div class="product-meta-item">
+
+                        <span class="product-meta-label">
+                            Аудитория:
+                        </span>
+
+                        {{ board_game.audience }}
+
+                    </div>
+                {% endif %}
+
+            </div>
+
+            <!-- КНОПКИ -->
+            <div class="detail-buttons">
+
+                <form action="{% url 'cart:cart_add' product.id %}" method="post">
+
+                    {% csrf_token %}
+
+                    <div class="quantity-selector">
+
+                        <label>
+                            Количество:
+                        </label>
+
+                        <input
+                            type="number"
+                            name="quantity"
+                            value="1"
+                            min="1"
+                            class="qty-input"
+                        >
+
+                    </div>
+
+                    <button type="submit" class="btn">
+                        В корзину
+                    </button>
+
+                </form>
+
+                <button type="button" class="btn btn-outline">
+                    В избранное
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ОПИСАНИЕ -->
+    <div class="product-description">
+
+        <h3>О товаре</h3>
+
+        {% if product.description %}
+            <p>{{ product.description }}</p>
+        {% else %}
+            <p>Описание пока отсутствует.</p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+<script>
+
+function changeImage(element) {
+    document.getElementById('main-product-image').src = element.src;
+}
+
+</script>
+
+{% endblock %}

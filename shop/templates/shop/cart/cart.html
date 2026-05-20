@@ -1,0 +1,98 @@
+
+{% extends 'shop/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="cart-container">
+    <h1 class="cart-title">Корзина</h1>
+
+    {% if cart_items %}
+        <div class="cart-list">
+            {% for item in cart_items %}
+            <div class="cart-card">
+                <div class="cart-image">
+                    {% with item.product.get_main_image as img %}
+                        {% if img %}
+                            <img src="{{ img.image.url }}" alt="{{ item.product.name }}">
+                        {% else %}
+                            <img src="{% static 'shop/img/no-image.png' %}">
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+                <div class="cart-info">
+                    <h3 class="cart-name">{{ item.product.name }}</h3>
+                    <p class="cart-price">{{ item.product.price }} ₽ / шт</p>
+
+                    <div class="cart-qty-row">
+                        <span>Кол-во:</span>
+                        <div class="cart-quantity-controls">
+
+                            <form action="{% url 'cart:cart_update' item.product.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="decrease">
+
+                                <button class="qty-btn">
+                                   −
+                                </button>
+                            </form>
+
+                            <span class="qty-number">
+                                {{ item.quantity }}
+                            </span>
+
+                            <form action="{% url 'cart:cart_update' item.product.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="increase">
+
+                                <button class="qty-btn">
+                                  +
+                                 </button>
+                             </form>
+
+                        </div>
+                        <span class="qty-unit">шт</span>
+                    </div>
+
+                    <div class="cart-total">
+                        Итого: <strong>{{ item.total_price }} ₽</strong>
+                    </div>
+                </div>
+
+                <div class="cart-actions">
+                    <a href="{% url 'cart:cart_remove' item.product.id %}" class="remove-btn">
+                        ✕ Удалить
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="cart-summary">
+            <div class="summary-block">
+                <span class="summary-label">Всего товаров:</span>
+                <span class="summary-value">{{ cart_items|length }} шт</span>
+            </div>
+            <div class="summary-block total-block">
+                <span class="summary-label">Итого к оплате:</span>
+                <span class="summary-value total-price">{{ total }} ₽</span>
+            </div>
+            <a href="{% url 'orders:order_create' %}"
+                class="checkout-btn">
+                Оформить заказ
+            </a>
+        </div>
+
+    {% else %}
+        <div class="empty-cart">
+            <div class="empty-icon"></div>
+            <h2>Корзина пуста</h2>
+            <p>Добавьте товары, чтобы оформить заказ</p>
+            <a href="{% url 'shop:product_list' %}" class="shop-btn">
+                Перейти в магазин
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} - Книжный магазин{% endblock %}
+
+{% block content %}
+    <div class="breadcrumbs">
+        <a href="{% url 'shop:product_list' %}">Главная</a> / {{ category.name }}
+    </div>
+
+    <h1>{{ category.name }}</h1>
+    <p class="results-count">Найдено товаров: {{ products.count }}</p>
+
+    {% if products %}
+        <div class="products-grid">
+            {% for product in products %}
+                <div class="product-card">
+                    <div class="product-image">
+                        {% with main_image=product.get_main_image %}
+                            {% if main_image %}
+                                <img src="{{ main_image.image.url }}" alt="{{ product.name }}">
+                            {% else %}
+                                <div class="no-image">📚</div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">
+                            <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                        </h3>
+
+                        {% if product.book %}
+                            <div class="product-meta-item">
+                                <span class="product-meta-label">Авторы:</span>
+                                {% for author in product.book.authors.all %}
+                                    {{ author }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="product-meta-item">
+                                <span class="product-meta-label">Издательство:</span>
+                                {{ product.book.publisher.name }}
+                            </div>
+                        {% endif %}
+
+                        <div class="product-price">{{ product.price }} ₽</div>
+                        <a href="{{ product.get_absolute_url }}" class="btn">Подробнее</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-results">
+            <h2>В этой категории пока нет товаров</h2>
+            <p><a href="{% url 'shop:product_list' %}" class="btn">Вернуться на главную</a></p>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,66 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>
+        {% block title %}
+            Админ панель
+        {% endblock %}
+    </title>
+
+    <link rel="stylesheet" href="{% static 'admin_panel/css/admin.css' %}">
+</head>
+
+<body>
+
+<div class="admin-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <h2 class="logo">
+            Admin Panel
+        </h2>
+
+        <nav>
+
+            <a href="{% url 'admin_panel:dashboard' %}">
+                Dashboard
+            </a>
+
+            <a href="{% url 'admin_panel:product_list' %}">
+                Товары
+            </a>
+
+            <a href="{% url 'admin_panel:product_create' %}">
+                Добавить товар
+            </a>
+
+            <a href="{% url 'admin_panel:reports' %}">
+                Отчеты
+            </a>
+
+            <a href="{% url 'account:logout' %}">
+                Выйти
+            </a>
+
+        </nav>
+
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="admin-content">
+
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+</div>
+
+</body>
+</html>

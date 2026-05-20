@@ -1,0 +1,70 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}
+Оформление заказа
+{% endblock %}
+
+{% block content %}
+
+<div class="checkout-container">
+
+    <h1>Оформление заказа</h1>
+
+    <div class="checkout-grid">
+
+        <div class="checkout-form">
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                {{ form.as_p }}
+
+                <button type="submit" class="checkout-btn">
+                    Подтвердить заказ
+                </button>
+
+            </form>
+
+        </div>
+
+        <div class="checkout-summary">
+
+            <h3>Ваш заказ</h3>
+
+            {% for item in cart_items %}
+
+                <div class="summary-item">
+
+                    <span>
+                        {{ item.product.name }}
+                        × {{ item.quantity }}
+                    </span>
+
+                    <strong>
+                        {{ item.total_price }} ₽
+                    </strong>
+
+                </div>
+
+            {% endfor %}
+
+            <hr>
+
+            <div class="summary-total">
+
+                <span>Итого:</span>
+
+                <strong>
+                    {{ total }} ₽
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

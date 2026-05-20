@@ -1,0 +1,50 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}
+Редактирование профиля
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'shop/css/edit_profile.css' %}">
+
+<div class="edit-profile-container">
+
+    <div class="edit-profile-card">
+
+        <h1>Редактирование профиля</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <div class="form-section">
+                <h2>Основная информация</h2>
+                {{ user_form.as_p }}
+            </div>
+
+            <div class="form-section">
+                <h2>Дополнительная информация</h2>
+                {{ buyer_form.as_p }}
+            </div>
+
+            <button type="submit" class="save-btn">
+                Сохранить изменения
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

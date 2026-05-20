@@ -1,0 +1,42 @@
+{% extends "admin_panel/base.html" %}
+
+{% block content %}
+
+<h1>Админ панель</h1>
+
+<div class="stats">
+
+    <div class="card">
+        <h3>Заказы</h3>
+        <p>{{ total_orders }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Продажи</h3>
+        <p>{{ total_sales }} ₽</p>
+    </div>
+
+    <div class="card">
+        <h3>Товары</h3>
+        <p>{{ total_products }}</p>
+    </div>
+
+</div>
+
+<h2>Популярные товары</h2>
+
+<table>
+    <tr>
+        <th>Товар</th>
+        <th>Продано</th>
+    </tr>
+
+    {% for item in popular_products %}
+    <tr>
+        <td>{{ item.product__name }}</td>
+        <td>{{ item.total_sold }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

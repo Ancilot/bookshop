@@ -1,0 +1,53 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Поиск: {{ query }} - Книжный магазин{% endblock %}
+
+{% block content %}
+    <div class="breadcrumbs">
+        <a href="{% url 'shop:product_list' %}">Главная</a> / Поиск
+    </div>
+
+    <h1>Результаты поиска</h1>
+
+    {% if query %}
+        <p class="results-count">По запросу "{{ query }}" найдено товаров: {{ products.count }}</p>
+
+        {% if products %}
+            <div class="products-grid">
+                {% for product in products %}
+                    <div class="product-card">
+                        <div class="product-image">
+                            {% with main_image=product.get_main_image %}
+                                {% if main_image %}
+                                    <img src="{{ main_image.image.url }}" alt="{{ product.name }}">
+                                {% else %}
+                                    <div class="no-image">📚</div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title">
+                                <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                            </h3>
+                            <div class="product-category">{{ product.category.name }}</div>
+                            <div class="product-price">{{ product.price }} ₽</div>
+                            <a href="{{ product.get_absolute_url }}" class="btn">Подробнее</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-results">
+                <h2>Ничего не найдено</h2>
+                <p>Попробуйте изменить поисковый запрос или посмотрите все товары в каталоге.</p>
+                <p><a href="{% url 'shop:product_list' %}" class="btn">Перейти в каталог</a></p>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="no-results">
+            <h2>Введите поисковый запрос</h2>
+            <p>Используйте форму поиска вверху страницы, чтобы найти нужные товары.</p>
+        </div>
+    {% endif %}
+{% endblock %}
