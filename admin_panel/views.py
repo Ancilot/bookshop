@@ -14,6 +14,7 @@ from django.http import HttpResponse
 
 from openpyxl import Workbook
 from reportlab.pdfgen import canvas
+from shop.models import Category
 
 from orders.models import (
     Order,
@@ -44,6 +45,7 @@ from .forms import (
 #
 
 @login_required
+@admin_required
 def product_create(request):
 
     if request.method == 'POST':
@@ -52,20 +54,24 @@ def product_create(request):
         product_form = ProductForm(request.POST)
 
         # категория берётся из POST (ВАЖНО)
-        category = request.POST.get('category')
+        category_id = request.POST.get('category')
+
+        category_obj = Category.objects.filter(id=category_id).first()
+
+        category_slug = category_obj.slug if category_obj else None
 
         # ===== дополнительные формы (только нужная) =====
         book_form = None
         game_form = None
         stationery_form = None
 
-        if category == 'книги':
+        if category_slug == 'books':
             book_form = BookForm(request.POST)
 
-        elif category == 'настольные игры':
+        elif category_slug == 'board-games':
             game_form = BoardGameForm(request.POST)
 
-        elif category == 'канцелярия':
+        elif category_slug == 'stationery':
             stationery_form = StationeryForm(request.POST)
 
         # ===== PRODUCT VALID =====
@@ -102,21 +108,21 @@ def product_create(request):
                         new_images[idx].save()
 
             # ===== CATEGORY LOGIC =====
-            if category == 'книги' and book_form and book_form.is_valid():
+            if category_slug == 'books' and book_form and book_form.is_valid():
 
                 book = book_form.save(commit=False)
                 book.product = product
                 book.save()
                 book_form.save_m2m()
 
-            elif category == 'настольные игры' and game_form and game_form.is_valid():
+            elif category_slug == 'board-games' and game_form and game_form.is_valid():
 
                 game = game_form.save(commit=False)
                 game.product = product
                 game.save()
                 game_form.save_m2m()
 
-            elif category == 'канцелярия' and stationery_form and stationery_form.is_valid():
+            elif category_slug == 'stationery' and stationery_form and stationery_form.is_valid():
 
                 stationery = stationery_form.save(commit=False)
                 stationery.product = product
@@ -166,6 +172,7 @@ def product_list(request):
 #
 
 @login_required
+@admin_required
 def product_update(request, id):
 
     product = get_object_or_404(Product, id=id)
@@ -180,20 +187,24 @@ def product_update(request, id):
         product_form = ProductForm(request.POST, instance=product)
 
         # ===== category берём из POST =====
-        category = request.POST.get('category')
+        category_id = request.POST.get('category')
+
+        category_obj = Category.objects.filter(id=category_id).first()
+
+        category_slug = category_obj.slug if category_obj else None
 
         # ===== формы создаём только нужные =====
         book_form = None
         game_form = None
         stationery_form = None
 
-        if category == 'книги':
+        if category_slug == 'books':
             book_form = BookForm(request.POST, instance=book_instance)
 
-        elif category == 'настольные игры':
+        elif category_slug == 'board-games':
             game_form = BoardGameForm(request.POST, instance=game_instance)
 
-        elif category == 'канцелярия':
+        elif category_slug == 'stationery':
             stationery_form = StationeryForm(
                 request.POST,
                 instance=stationery_instance
@@ -205,21 +216,22 @@ def product_update(request, id):
             product = product_form.save()
 
             # ===== CATEGORY SAVE =====
-            if category == 'книги' and book_form and book_form.is_valid():
+            if category_slug == 'books' and book_form and book_form.is_valid():
 
                 obj = book_form.save(commit=False)
                 obj.product = product
                 obj.save()
                 book_form.save_m2m()
 
-            elif category == 'настольные игры' and game_form and game_form.is_valid():
+
+            elif category_slug == 'board-games' and game_form and game_form.is_valid():
 
                 obj = game_form.save(commit=False)
                 obj.product = product
                 obj.save()
                 game_form.save_m2m()
 
-            elif category == 'канцелярия' and stationery_form and stationery_form.is_valid():
+            elif category_slug == 'stationery' and stationery_form and stationery_form.is_valid():
 
                 obj = stationery_form.save(commit=False)
                 obj.product = product
@@ -426,10 +438,18 @@ def dashboard(request):
         for order in Order.objects.all()
     )
 
+    popular_products = (
+        OrderItem.objects
+        .values('product__name')
+        .annotate(total_sold=Sum('quantity'))
+        .order_by('-total_sold')[:5]
+    )
+
     context = {
         'total_orders': total_orders,
         'total_products': total_products,
         'total_sales': total_sales,
+        'popular_products': popular_products,
     }
 
     return render(
@@ -437,7 +457,6 @@ def dashboard(request):
         'admin_panel/dashboard.html',
         context
     )
-
 
 #
 # REPORTS

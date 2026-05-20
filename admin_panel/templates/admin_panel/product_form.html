@@ -16,15 +16,22 @@
         {{ product_form.description.label_tag }} {{ product_form.description }}<br><br>
 
         <!-- ВАЖНО: category должен иметь data-slug -->
-        <label for="id_category">Категория</label>
+        {{ product_form.category.label_tag }}
+
         <select name="category" id="id_category">
+
             {% for cat in product_form.fields.category.queryset %}
-                <option value="{{ cat.id }}"
-                        data-slug="{{ cat.slug }}"
-                        {% if product and product.category.id == cat.id %}selected{% endif %}>
+
+                <option
+                    value="{{ cat.id }}"
+                    data-slug="{{ cat.slug }}"
+                    {% if product and product.category.id == cat.id %}selected{% endif %}
+                >
                     {{ cat.name }}
                 </option>
+
             {% endfor %}
+
         </select>
 
         <br><br>

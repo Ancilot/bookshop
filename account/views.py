@@ -11,6 +11,7 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.contrib.auth.forms import AuthenticationForm
 
+
 def user_logout(request):
     logout(request)
     return redirect('account:login')
