@@ -7,7 +7,6 @@
 <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
 
-    <!-- PRODUCT -->
     <h2>Основная информация</h2>
 
     <div>
@@ -15,24 +14,8 @@
         {{ product_form.price.label_tag }} {{ product_form.price }}<br><br>
         {{ product_form.description.label_tag }} {{ product_form.description }}<br><br>
 
-        <!-- ВАЖНО: category должен иметь data-slug -->
         {{ product_form.category.label_tag }}
-
-        <select name="category" id="id_category">
-
-            {% for cat in product_form.fields.category.queryset %}
-
-                <option
-                    value="{{ cat.id }}"
-                    data-slug="{{ cat.slug }}"
-                    {% if product and product.category.id == cat.id %}selected{% endif %}
-                >
-                    {{ cat.name }}
-                </option>
-
-            {% endfor %}
-
-        </select>
+        {{ product_form.category }}
 
         <br><br>
 
@@ -41,7 +24,6 @@
 
     <hr>
 
-    <!-- IMAGES -->
     <h2>Изображения</h2>
 
     <div id="images-container">
@@ -74,20 +56,10 @@
 
     <hr>
 
-    <!-- CATEGORY BLOCKS -->
-    <div id="book-fields" style="display:none;">
-        <h2>Книга</h2>
-        {{ book_form.as_p }}
-    </div>
-
-    <div id="game-fields" style="display:none;">
-        <h2>Настольная игра</h2>
-        {{ game_form.as_p }}
-    </div>
-
-    <div id="stationery-fields" style="display:none;">
-        <h2>Канцелярия</h2>
-        {{ stationery_form.as_p }}
+    <div id="category-fields">
+        {% if category_form %}
+            {{ category_form.as_p }}
+        {% endif %}
     </div>
 
     <br>
@@ -95,48 +67,40 @@
     <button type="submit">Сохранить</button>
 </form>
 
+
 <script>
 
-// ================= CATEGORY (SLUG BASED) =================
+document.addEventListener('DOMContentLoaded', function () {
 
-const categorySelect = document.getElementById('id_category');
+    const categoryField = document.getElementById('id_category');
+    const categoryBox = document.getElementById('category-fields');
 
-const bookFields = document.getElementById('book-fields');
-const gameFields = document.getElementById('game-fields');
-const stationeryFields = document.getElementById('stationery-fields');
+    if (!categoryField || !categoryBox) return;
 
-function hideAll() {
-    bookFields && (bookFields.style.display = 'none');
-    gameFields && (gameFields.style.display = 'none');
-    stationeryFields && (stationeryFields.style.display = 'none');
-}
+    function loadCategoryForm(categoryId) {
 
-function showByCategory() {
-    if (!categorySelect) return;
+        if (!categoryId) {
+            categoryBox.innerHTML = "";
+            return;
+        }
 
-    const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-    const slug = selectedOption?.dataset?.slug || '';
-
-    hideAll();
-
-    if (slug === 'books') {
-        bookFields && (bookFields.style.display = 'block');
+        fetch(`/admin-panel/ajax/load-category-form/?category_id=${categoryId}&product_id={{ product.id }}`)
+            .then(r => r.json())
+            .then(data => {
+                categoryBox.innerHTML = data.html;
+            })
+            .catch(err => console.error(err));
     }
 
-    else if (slug === 'board-games') {
-        gameFields && (gameFields.style.display = 'block');
-    }
+    // init load
+    loadCategoryForm(categoryField.value);
 
-    else if (slug === 'stationery') {
-        stationeryFields && (stationeryFields.style.display = 'block');
-    }
-}
+    // change handler
+    categoryField.addEventListener('change', function () {
+        loadCategoryForm(this.value);
+    });
 
-categorySelect?.addEventListener('change', showByCategory);
-window.addEventListener('DOMContentLoaded', showByCategory);
-
-
-// ================= IMAGES =================
+});
 
 const container = document.getElementById('images-container');
 const preview = document.getElementById('preview-container');
@@ -181,27 +145,23 @@ function rebuildPreview() {
     });
 }
 
-
-// ADD IMAGE INPUT
+// add input
 addBtn.addEventListener('click', () => {
-
     const input = document.createElement('input');
     input.type = 'file';
     input.name = 'images';
     input.classList.add('image-input');
 
     input.addEventListener('change', rebuildPreview);
-
     container.appendChild(input);
 });
 
-
-// INIT
+// init existing inputs
 document.querySelectorAll('.image-input')
     .forEach(input => input.addEventListener('change', rebuildPreview));
 
 
-// DELETE OLD IMAGES
+// delete old images
 document.addEventListener('click', function(e) {
 
     if (e.target.classList.contains('delete-old')) {

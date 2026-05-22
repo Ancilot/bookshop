@@ -12,25 +12,21 @@ from .models import (
     Stationery
 )
 
-# INLINE ДЛЯ ИЗОБРАЖЕНИЙ
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 1
 
-# CATEGORY
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'slug']
     prepopulated_fields = {'slug': ('name',)}
 
-# SUPPLIER
 @admin.register(Supplier)
 class SupplierAdmin(admin.ModelAdmin):
     list_display = ['name', 'phone', 'email']
     search_fields = ['name']
 
-# PRODUCT
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = [
@@ -64,17 +60,14 @@ class ProductAdmin(admin.ModelAdmin):
 
     inlines = [ProductImageInline]
 
-# PRODUCT IMAGE
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ['product', 'is_main']
 
-# GENRE
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
-# AUTHOR
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
     list_display = [
@@ -88,12 +81,10 @@ class AuthorAdmin(admin.ModelAdmin):
         'first_name'
     ]
 
-# TAG
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
-# BOOK
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
     list_display = [
@@ -119,7 +110,6 @@ class BookAdmin(admin.ModelAdmin):
         'tags'
     ]
 
-# BOARD GAME
 @admin.register(BoardGame)
 class BoardGameAdmin(admin.ModelAdmin):
     list_display = [
@@ -142,7 +132,6 @@ class BoardGameAdmin(admin.ModelAdmin):
         'genres'
     ]
 
-# STATIONERY
 @admin.register(Stationery)
 class StationeryAdmin(admin.ModelAdmin):
     list_display = [

@@ -7,7 +7,9 @@ from django.shortcuts import (
 from django.contrib.auth.decorators import (
     login_required
 )
-
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from shop.models import Category
 from django.db.models import Sum
 from django.utils.dateparse import parse_date
 from django.http import HttpResponse
@@ -39,120 +41,120 @@ from .forms import (
     StationeryForm
 )
 
-
-#
-# CREATE PRODUCT
-#
+from admin_panel.constant import (
+    CATEGORY_MAP,
+    RELATED_MAP
+)
 
 @login_required
 @admin_required
 def product_create(request):
 
+    product_form = ProductForm(request.POST or None)
+
+    category_slug = None
+    category_form = None
+
     if request.method == 'POST':
 
-        # ===== PRODUCT =====
-        product_form = ProductForm(request.POST)
-
-        # категория берётся из POST (ВАЖНО)
         category_id = request.POST.get('category')
-
         category_obj = Category.objects.filter(id=category_id).first()
 
         category_slug = category_obj.slug if category_obj else None
 
-        # ===== дополнительные формы (только нужная) =====
-        book_form = None
-        game_form = None
-        stationery_form = None
+        form_class = CATEGORY_MAP.get(category_slug)
 
-        if category_slug == 'books':
-            book_form = BookForm(request.POST)
+        if form_class:
+            category_form = form_class(request.POST)
 
-        elif category_slug == 'board-games':
-            game_form = BoardGameForm(request.POST)
+        # validashion
+        forms_valid = product_form.is_valid()
 
-        elif category_slug == 'stationery':
-            stationery_form = StationeryForm(request.POST)
+        if category_form:
+            forms_valid = forms_valid and category_form.is_valid()
 
-        # ===== PRODUCT VALID =====
-        if product_form.is_valid():
+        if forms_valid:
 
             product = product_form.save()
 
-            # ===== IMAGES =====
+            # category save
+            if category_form:
+                obj = category_form.save(commit=False)
+                obj.product = product
+                obj.save()
+
+                if hasattr(category_form, "save_m2m"):
+                    category_form.save_m2m()
+
+            # изображения
             images = request.FILES.getlist('images')
-
-            main_image_value = request.POST.get('main_image')
-
             new_images = []
 
             for index, image in enumerate(images):
-
                 img = ProductImage.objects.create(
                     product=product,
                     image=image,
                     is_main=False
                 )
-
                 new_images.append(img)
 
-            # ===== MAIN IMAGE =====
-            if main_image_value:
+            main_image_value = request.POST.get('main_image')
 
+            if main_image_value:
                 product.images.update(is_main=False)
 
                 if main_image_value.startswith('new_'):
-                    idx = int(main_image_value.replace('new_', ''))
-                    if idx < len(new_images):
-                        new_images[idx].is_main = True
-                        new_images[idx].save()
-
-            # ===== CATEGORY LOGIC =====
-            if category_slug == 'books' and book_form and book_form.is_valid():
-
-                book = book_form.save(commit=False)
-                book.product = product
-                book.save()
-                book_form.save_m2m()
-
-            elif category_slug == 'board-games' and game_form and game_form.is_valid():
-
-                game = game_form.save(commit=False)
-                game.product = product
-                game.save()
-                game_form.save_m2m()
-
-            elif category_slug == 'stationery' and stationery_form and stationery_form.is_valid():
-
-                stationery = stationery_form.save(commit=False)
-                stationery.product = product
-                stationery.save()
+                    try:
+                        idx = int(main_image_value.replace('new_', ''))
+                        if idx < len(new_images):
+                            new_images[idx].is_main = True
+                            new_images[idx].save()
+                    except ValueError:
+                        pass
 
             return redirect('admin_panel:product_list')
 
-    else:
+        else:
+            print("PRODUCT ERRORS:", product_form.errors)
+            if category_form:
+                print("CATEGORY ERRORS:", category_form.errors)
 
-        product_form = ProductForm()
-
-        book_form = BookForm()
-        game_form = BoardGameForm()
-        stationery_form = StationeryForm()
-
-    return render(
-        request,
-        'admin_panel/product_form.html',
-        {
-            'product_form': product_form,
-            'book_form': book_form,
-            'game_form': game_form,
-            'stationery_form': stationery_form,
-        }
-    )
-
-
+    return render(request, 'admin_panel/product_form.html', {
+        'product_form': product_form,
+        'category_form': category_form,
+    })
 #
 # PRODUCT LIST
 #
+def load_category_form(request):
+
+    category_id = request.GET.get('category_id')
+    product_id = request.GET.get('product_id')
+
+    category = Category.objects.filter(id=category_id).first()
+    if not category:
+        return JsonResponse({'html': ''})
+
+    form_class = CATEGORY_MAP.get(category.slug)
+    if not form_class:
+        return JsonResponse({'html': ''})
+
+    instance = None
+
+    if product_id:
+        product = Product.objects.filter(id=product_id).first()
+        if product:
+            related_name = RELATED_MAP.get(category.slug)
+            instance = getattr(product, related_name, None)
+
+    form = form_class(instance=instance)
+
+    html = render_to_string(
+        'admin_panel/partials/category_form.html',
+        {'category_form': form}
+    )
+
+    return JsonResponse({'html': html})
 
 def product_list(request):
 
@@ -166,10 +168,16 @@ def product_list(request):
         }
     )
 
+# print("BOOK DATA:", request.POST.get("publisher"), type(request.POST.get("publisher")))
+       # print("YEAR DATA:", request.POST.get("year"), type(request.POST.get("year")))
+
 
 #
 # UPDATE PRODUCT
 #
+ #       print(BookForm(request.POST).errors)
+  #      print("POST publisher:", request.POST.get("publisher"))
+
 
 @login_required
 @admin_required
@@ -178,66 +186,50 @@ def product_update(request, id):
     product = get_object_or_404(Product, id=id)
     images = product.images.all()
 
-    book_instance = getattr(product, 'book', None)
-    game_instance = getattr(product, 'board_game', None)
-    stationery_instance = getattr(product, 'stationery', None)
+    product_form = ProductForm(
+        request.POST or None,
+        instance=product
+    )
+
+    # slag
+    category_id = request.POST.get('category') if request.method == 'POST' else product.category_id
+    category_obj = Category.objects.filter(id=category_id).first()
+    category_slug = category_obj.slug if category_obj else None
+
+    form_class = CATEGORY_MAP.get(category_slug)
+
+    category_instance = None
+    category_form = None
+
+    if form_class:
+
+        related_name = RELATED_MAP.get(category_slug)
+
+        category_instance = getattr(product, related_name, None)
+
+        category_form = form_class(
+            request.POST or None,
+            instance=category_instance
+        )
 
     if request.method == 'POST':
 
-        product_form = ProductForm(request.POST, instance=product)
-
-        # ===== category берём из POST =====
-        category_id = request.POST.get('category')
-
-        category_obj = Category.objects.filter(id=category_id).first()
-
-        category_slug = category_obj.slug if category_obj else None
-
-        # ===== формы создаём только нужные =====
-        book_form = None
-        game_form = None
-        stationery_form = None
-
-        if category_slug == 'books':
-            book_form = BookForm(request.POST, instance=book_instance)
-
-        elif category_slug == 'board-games':
-            game_form = BoardGameForm(request.POST, instance=game_instance)
-
-        elif category_slug == 'stationery':
-            stationery_form = StationeryForm(
-                request.POST,
-                instance=stationery_instance
-            )
-
-        # ===== PRODUCT VALID =====
-        if product_form.is_valid():
+        if product_form.is_valid() and (
+            category_form.is_valid() if category_form else True
+        ):
 
             product = product_form.save()
 
-            # ===== CATEGORY SAVE =====
-            if category_slug == 'books' and book_form and book_form.is_valid():
-
-                obj = book_form.save(commit=False)
-                obj.product = product
-                obj.save()
-                book_form.save_m2m()
-
-
-            elif category_slug == 'board-games' and game_form and game_form.is_valid():
-
-                obj = game_form.save(commit=False)
-                obj.product = product
-                obj.save()
-                game_form.save_m2m()
-
-            elif category_slug == 'stationery' and stationery_form and stationery_form.is_valid():
-
-                obj = stationery_form.save(commit=False)
+            # save
+            if category_form:
+                obj = category_form.save(commit=False)
                 obj.product = product
                 obj.save()
 
-            # ===== DELETE IMAGES =====
+                if hasattr(category_form, "save_m2m"):
+                    category_form.save_m2m()
+
+            # цдаление изображения
             delete_ids = request.POST.getlist('delete_image')
 
             if delete_ids:
@@ -246,67 +238,55 @@ def product_update(request, id):
                     product=product
                 ).delete()
 
-            # ===== NEW IMAGES =====
-            files = request.FILES.getlist('images')
+            # обновление изображения
+            uploaded_images = request.FILES.getlist('images')
 
             new_images = []
 
-            for f in files:
-                img = ProductImage.objects.create(
-                    product=product,
-                    image=f,
-                    is_main=False
+            for img in uploaded_images:
+                new_images.append(
+                    ProductImage.objects.create(
+                        product=product,
+                        image=img,
+                        is_main=False
+                    )
                 )
-                new_images.append(img)
 
-            # ===== MAIN IMAGE =====
-            main = request.POST.get('main_image')
+            # основное изображение
+            main_image = request.POST.get('main_image')
 
-            if main:
+            if main_image:
                 product.images.update(is_main=False)
 
-                if main.startswith('old_'):
-                    img_id = int(main.replace('old_', ''))
+                if main_image.startswith('new_'):
+                    try:
+                        i = int(main_image.replace('new_', ''))
+                        if i < len(new_images):
+                            new_images[i].is_main = True
+                            new_images[i].save()
+                    except ValueError:
+                        pass
 
+                elif main_image.startswith('old_'):
+                    img_id = main_image.replace('old_', '')
                     ProductImage.objects.filter(
                         id=img_id,
                         product=product
                     ).update(is_main=True)
 
-                elif main.startswith('new_'):
-                    idx = int(main.replace('new_', ''))
-
-                    if idx < len(new_images):
-                        new_images[idx].is_main = True
-                        new_images[idx].save()
-
             return redirect('admin_panel:product_list')
 
-    else:
+        else:
+            print("PRODUCT FORM ERRORS:", product_form.errors)
+            if category_form:
+                print("CATEGORY FORM ERRORS:", category_form.errors)
 
-        product_form = ProductForm(instance=product)
-
-        book_form = BookForm(instance=book_instance)
-        game_form = BoardGameForm(instance=game_instance)
-        stationery_form = StationeryForm(instance=stationery_instance)
-
-    return render(
-        request,
-        'admin_panel/product_form.html',
-        {
-            'product_form': product_form,
-            'book_form': book_form,
-            'game_form': game_form,
-            'stationery_form': stationery_form,
-            'product': product,
-            'images': images,
-        }
-    )
-
-
-#
-# DELETE PRODUCT
-#
+    return render(request, 'admin_panel/product_form.html', {
+        'product_form': product_form,
+        'category_form': category_form,
+        'product': product,
+        'images': images,
+    })
 
 def product_delete(request, id):
 
@@ -321,10 +301,6 @@ def product_delete(request, id):
         'admin_panel:product_list'
     )
 
-
-#
-# EXPORT PDF
-#
 
 @admin_required
 def export_pdf(request):
@@ -374,10 +350,6 @@ def export_pdf(request):
     return response
 
 
-#
-# EXPORT EXCEL
-#
-
 @admin_required
 def export_excel(request):
 
@@ -422,10 +394,6 @@ def export_excel(request):
     return response
 
 
-#
-# DASHBOARD
-#
-
 @admin_required
 def dashboard(request):
 
@@ -457,10 +425,6 @@ def dashboard(request):
         'admin_panel/dashboard.html',
         context
     )
-
-#
-# REPORTS
-#
 
 @admin_required
 def reports(request):

@@ -29,7 +29,6 @@
 
     <div class="product-detail-header">
 
-        <!-- ГАЛЕРЕЯ -->
         <div class="product-gallery">
 
             <div class="product-detail-image">
@@ -54,7 +53,6 @@
 
             </div>
 
-            <!-- МИНИАТЮРЫ -->
             {% if product.images.all %}
                 <div class="gallery-thumbnails">
 
@@ -72,7 +70,6 @@
 
         </div>
 
-        <!-- ИНФОРМАЦИЯ -->
         <div class="product-detail-info">
 
             <h1>{{ product.name }}</h1>
@@ -91,7 +88,6 @@
                     {{ product.category.name }}
                 </div>
 
-                <!-- КНИГА -->
                 {% if book %}
 
                     {% if book.genres.all %}
@@ -184,7 +180,6 @@
 
                 {% endif %}
 
-                <!-- НАСТОЛКА -->
                 {% if board_game %}
                     <div class="product-meta-item">
 
@@ -199,7 +194,6 @@
 
             </div>
 
-            <!-- КНОПКИ -->
             <div class="detail-buttons">
 
                 <form action="{% url 'cart:cart_add' product.id %}" method="post">
@@ -238,7 +232,6 @@
 
     </div>
 
-    <!-- ОПИСАНИЕ -->
     <div class="product-description">
 
         <h3>О товаре</h3>

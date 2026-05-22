@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.db.models import Q, UniqueConstraint
+from social_core.utils import slugify
 
 
 class Category(models.Model):
@@ -98,6 +99,30 @@ class Product(models.Model):
 
     def get_main_image(self):
         return self.images.filter(is_main=True).first()
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.generate_unique_slug()
+
+        super().save(*args, **kwargs)
+
+    def generate_unique_slug(self):
+        base_slug = slugify(self.name)
+        slug = base_slug
+        counter = 1
+
+        # исключаем текущий объект при update
+        qs = Product.objects.all()
+
+        if self.pk:
+            qs = qs.exclude(pk=self.pk)
+
+        while qs.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+
+        return slug
+
 
 
 class Genre(models.Model):
