@@ -279,7 +279,7 @@ if (priceField) {
                             <input type="radio"
                                    name="main_image"
                                    value="new_${index}">
-                            Главное
+                            Главное изображение
                         </label>
 
                         <button type="button" class="delete-new delete-btn">
@@ -320,6 +320,28 @@ document.addEventListener('input', function(e) {
     const error = document.querySelector(`[data-error="${e.target.name}"]`);
     if (error && e.target.value) {
         error.style.display = 'none';
+    }
+
+    // Год
+    if (e.target.name.includes('year')) {
+
+        e.target.value = e.target.value
+            .replace(/\D/g, '') // только цифры
+            .slice(0, 4);       // максимум 4 цифры
+
+        const currentYear = new Date().getFullYear();
+
+        if (parseInt(e.target.value) > currentYear) {
+            e.target.value = currentYear;
+        }
+    }
+
+    // Страницы
+    if (e.target.name.includes('pages')) {
+
+        e.target.value = e.target.value
+            .replace(/\D/g, '') // только цифры
+            .slice(0, 5);       // максимум 5 цифр
     }
 });
     document.querySelectorAll('.image-input')

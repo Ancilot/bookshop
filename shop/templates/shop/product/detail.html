@@ -154,18 +154,6 @@
 
                     </div>
 
-                    {% if book.isbn %}
-                    <div class="product-meta-item">
-
-                        <span class="product-meta-label">
-                            ISBN:
-                        </span>
-
-                        {{ book.isbn }}
-
-                    </div>
-                    {% endif %}
-
                     {% if book.pages %}
                     <div class="product-meta-item">
 
@@ -188,6 +176,21 @@
                         </span>
 
                         {{ board_game.audience }}
+
+                    </div>
+                {% endif %}
+                {% if product.stationery %}
+                    <div class="product-meta-item">
+
+                        <span class="product-meta-label">
+                            Поставщик:
+                        </span>
+
+                    {% if product.stationery.supplier %}
+                        {{ product.stationery.supplier.name }}
+                    {% else %}
+                        <span>Не указан</span>
+                    {% endif %}
 
                     </div>
                 {% endif %}

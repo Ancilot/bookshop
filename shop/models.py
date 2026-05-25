@@ -1,9 +1,11 @@
 from django.db import models
 from django.urls import reverse
 from django.db.models import Q, UniqueConstraint
-from django.utils.text import slugify
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
+from django.utils.timezone import now
+from transliterate import translit
+from django.utils.text import slugify
 
 class Price(models.Model):
     product = models.ForeignKey(
@@ -141,7 +143,7 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
     def generate_unique_slug(self):
-        base_slug = slugify(self.name)
+        base_slug = slugify(self.name, allow_unicode=True)
         slug = base_slug
         counter = 1
 
@@ -208,8 +210,20 @@ class Book(models.Model):
     genres = models.ManyToManyField(Genre, blank=True, verbose_name="Жанры")
     tags = models.ManyToManyField(Tag, blank=True, verbose_name="Теги")
     publisher = models.ForeignKey(Supplier, on_delete=models.CASCADE, verbose_name="Издательство")
-    year = models.IntegerField(verbose_name="Год издания")
-    pages = models.IntegerField(blank=True, null=True, verbose_name="Страниц")
+    year = models.PositiveIntegerField(
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(now().year)
+        ],
+        verbose_name="Год издания"
+    )
+
+    pages = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(1)],
+        verbose_name="Страниц"
+    )
 
     class Meta:
         verbose_name = "Книга"
@@ -228,7 +242,13 @@ class BoardGame(models.Model):
     )
     genres = models.ManyToManyField(Genre, blank=True, verbose_name="Жанры")
     audience = models.CharField(max_length=100, verbose_name="Целевая аудитория")
-    year = models.IntegerField(verbose_name="Год издания")
+    year = models.PositiveIntegerField(
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(now().year)
+        ],
+        verbose_name="Год издания"
+    )
     publisher = models.ForeignKey(Supplier, on_delete=models.CASCADE, verbose_name="Издательство")
 
     class Meta:

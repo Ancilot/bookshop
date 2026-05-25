@@ -1,0 +1,165 @@
+.products-page {
+    padding: 30px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 32px;
+}
+
+.page-header p {
+    margin-top: 6px;
+    color: #777;
+}
+
+.add-btn {
+    background: #111827;
+    color: white;
+    text-decoration: none;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.add-btn:hover {
+    background: #000;
+}
+
+.section-card {
+    background: white;
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-title h2 {
+    margin: 0;
+}
+
+.section-title span {
+    background: #f3f4f6;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.products-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.products-table thead {
+    background: #f9fafb;
+}
+
+.products-table th {
+    text-align: left;
+    padding: 16px;
+    font-size: 14px;
+    color: #666;
+}
+
+.products-table td {
+    padding: 16px;
+    border-top: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.image-cell img {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.no-image {
+    width: 80px;
+    height: 80px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 12px;
+}
+
+.product-name {
+    font-weight: 600;
+}
+
+.price {
+    font-weight: bold;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-btn,
+.delete-btn,
+.restore-btn {
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.edit-btn {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.edit-btn:hover {
+    background: #bae6fd;
+}
+
+.delete-btn {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.delete-btn:hover {
+    background: #fecaca;
+}
+
+.restore-btn {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.restore-btn:hover {
+    background: #bbf7d0;
+}
+
+.inactive-table tr {
+    opacity: 0.7;
+}
+
+.empty {
+    text-align: center;
+    color: #999;
+    padding: 40px !important;
+}

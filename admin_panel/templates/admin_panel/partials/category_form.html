@@ -6,6 +6,7 @@
 
                 <label>
                     {{ field.label }}
+
                     {% if field.field.required %}
                         <span style="color:red">*</span>
                     {% endif %}
@@ -14,8 +15,18 @@
                 {{ field }}
 
                 {% if field.errors %}
-                    <small style="color:red">{{ field.errors }}</small>
+                    <small style="color:red">
+                        {{ field.errors }}
+                    </small>
                 {% endif %}
+
+                <small
+                    class="error"
+                    data-error="{{ field.name }}"
+                    style="display:none;color:red;"
+                >
+                    Заполните поле "{{ field.label }}"
+                </small>
 
             </div>
         {% endfor %}
