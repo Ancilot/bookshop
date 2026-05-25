@@ -1,0 +1,31 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block content %}
+
+<h1>Авторы</h1>
+
+<a href="{% url 'admin_panel:author_create' %}" class="btn">
+    + Добавить автора
+</a>
+
+<div class="list">
+
+    {% for author in authors %}
+        <div class="list-item">
+
+            <span>
+                {{ author.last_name }} {{ author.first_name }} {{ author.middle_name }}
+            </span>
+
+            <a href="{% url 'admin_panel:author_delete' author.id %}">
+                Удалить
+            </a>
+
+        </div>
+    {% empty %}
+        <p>Авторы отсутствуют</p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

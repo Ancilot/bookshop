@@ -20,4 +20,27 @@ urlpatterns = [
     path('reports/excel/', views.export_excel, name='export_excel'),
     path('reports/pdf/', views.export_pdf, name='export_pdf'),
     path('ajax/load-category-form/',views.load_category_form,name='load_category_form'),
-]
+
+    # Справочники
+    path('dictionaries/', views.dictionaries, name='dictionaries'),
+    # Genres
+    path('genres/', views.genre_list, name='genre_list'),
+    path('genres/create/', views.genre_create, name='genre_create'),
+    path('genres/<int:id>/delete/', views.genre_delete, name='genre_delete'),
+
+    # Authors
+    path('authors/', views.author_list, name='author_list'),
+    path('authors/create/', views.author_create, name='author_create'),
+    path('authors/<int:id>/delete/', views.author_delete, name='author_delete'),
+
+    # Tags
+    path('tags/', views.tag_list, name='tag_list'),
+    path('tags/create/', views.tag_create, name='tag_create'),
+    path('tags/<int:id>/delete/', views.tag_delete, name='tag_delete'),
+
+    # Suppliers
+    path('suppliers/', views.supplier_list, name='supplier_list'),
+    path('suppliers/create/', views.supplier_create, name='supplier_create'),
+    path('suppliers/<int:id>/delete/', views.supplier_delete, name='supplier_delete'),
+    path('suppliers/<int:id>/restore/', views.supplier_restore, name='supplier_restore'),
+    ]

@@ -1,0 +1,66 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block content %}
+
+<h1>Поставщики</h1>
+
+<a href="{% url 'admin_panel:supplier_create' %}" class="btn">
+    + Добавить поставщика
+</a>
+
+<h2>Активные</h2>
+
+<div class="list">
+
+    {% for supplier in suppliers %}
+        <div class="list-item">
+
+            <div class="supplier-info">
+                <strong>{{ supplier.name }}</strong><br>
+
+                <small>
+                    {{ supplier.phone }}<br>
+                    {{ supplier.email|default:"—" }}
+                </small>
+            </div>
+
+            <a href="{% url 'admin_panel:supplier_delete' supplier.id %}">
+                Удалить
+            </a>
+
+
+        </div>
+    {% empty %}
+        <p>Нет активных поставщиков</p>
+    {% endfor %}
+
+</div>
+
+<h2>Архив</h2>
+
+<div class="list">
+
+    {% for supplier in archived_suppliers %}
+        <div class="list-item inactive">
+
+            <div class="supplier-info">
+                <strong>{{ supplier.name }}</strong><br>
+
+                <small>
+                     {{ supplier.phone }}<br>
+                     {{ supplier.email|default:"—" }}
+                </small>
+            </div>
+
+            <a href="{% url 'admin_panel:supplier_restore' supplier.id %}">
+                Восстановить
+            </a>
+
+        </div>
+    {% empty %}
+        <p>Архив пуст</p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

@@ -1,7 +1,26 @@
 from django import forms
-from shop.models import Product, Book, BoardGame, Stationery, Price
+from shop.models import Product, Book, BoardGame, Stationery, Price, Genre, Author, Tag, Supplier
 from django.utils.timezone import now
 
+class GenreForm(forms.ModelForm):
+    class Meta:
+        model = Genre
+        fields = ['name']
+
+class AuthorForm(forms.ModelForm):
+    class Meta:
+        model = Author
+        fields = ['last_name', 'first_name', 'middle_name']
+
+class TagForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+        fields = ['name']
+
+class SupplierForm(forms.ModelForm):
+    class Meta:
+        model = Supplier
+        fields = ['name', 'phone', 'email']
 CURRENT_YEAR = now().year
 
 class ProductForm(forms.ModelForm):
@@ -44,25 +63,25 @@ class BookForm(forms.ModelForm):
             })
         }
 
-        def clean_year(self):
-            year = self.cleaned_data.get('year')
+    def clean_year(self):
+        year = self.cleaned_data.get('year')
 
-            if year and year > CURRENT_YEAR:
+        if year and year > CURRENT_YEAR:
                 raise forms.ValidationError(
                     f'Год издания не может быть больше {CURRENT_YEAR}'
                 )
 
-            return year
+        return year
 
-        def clean_pages(self):
-            pages = self.cleaned_data.get('pages')
+    def clean_pages(self):
+        pages = self.cleaned_data.get('pages')
 
-            if pages and pages < 1:
+        if pages and pages < 1:
                 raise forms.ValidationError(
                     'Количество страниц должно быть больше 0'
                 )
 
-            return pages
+        return pages
 
 
 class BoardGameForm(forms.ModelForm):
@@ -81,15 +100,15 @@ class BoardGameForm(forms.ModelForm):
             })
         }
 
-        def clean_year(self):
-            year = self.cleaned_data.get('year')
+    def clean_year(self):
+        year = self.cleaned_data.get('year')
 
-            if year and year > CURRENT_YEAR:
+        if year and year > CURRENT_YEAR:
                 raise forms.ValidationError(
                     f'Год издания не может быть больше {CURRENT_YEAR}'
-                )
+            )
 
-            return year
+        return year
 
 
 class StationeryForm(forms.ModelForm):

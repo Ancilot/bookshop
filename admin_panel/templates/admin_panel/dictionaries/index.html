@@ -1,0 +1,31 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin_panel/css/index.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<h1>Справочники</h1>
+<div class="grid">
+
+    <a href="{% url 'admin_panel:genre_list' %}" class="card">
+        Жанры
+    </a>
+
+    <a href="{% url 'admin_panel:author_list' %}" class="card">
+        Авторы
+    </a>
+
+    <a href="{% url 'admin_panel:tag_list' %}" class="card">
+        Теги
+    </a>
+
+    <a href="{% url 'admin_panel:supplier_list' %}" class="card">
+        Поставщики
+    </a>
+
+</div>
+
+{% endblock %}

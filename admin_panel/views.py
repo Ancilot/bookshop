@@ -1,9 +1,4 @@
-from django.shortcuts import (
-    render,
-    redirect,
-    get_object_or_404
-)
-from .forms import PriceForm
+from .forms import PriceForm, AuthorForm, TagForm
 from django.contrib.auth.decorators import (
     login_required
 )
@@ -16,7 +11,7 @@ from django.http import HttpResponse
 
 from openpyxl import Workbook
 from reportlab.pdfgen import canvas
-from shop.models import Category
+from django.shortcuts import render, get_object_or_404, redirect
 
 from orders.models import (
     Order,
@@ -47,9 +42,134 @@ from admin_panel.constant import (
     CATEGORY_MAP,
     RELATED_MAP
 )
+from shop.models import Genre
+from .forms import GenreForm
+from django.contrib import messages
 
+from shop.models import Supplier
+from .forms import SupplierForm
 
+def supplier_list(request):
+    suppliers = Supplier.objects.filter(is_active=True)
+    archived_suppliers = Supplier.objects.filter(is_active=False)
+    return render(request, 'admin_panel/dictionaries/suppliers/suppliers.html', {
+        'suppliers': suppliers,
+        'archived_suppliers': archived_suppliers,
+    })
 
+def supplier_create(request):
+    form = SupplierForm(request.POST or None)
+
+    if form.is_valid():
+        form.save()
+        return redirect('admin_panel:supplier_list')
+
+    return render(request, 'admin_panel/dictionaries/suppliers/supplier_form.html', {'form': form})
+
+def supplier_delete(request, id):
+    supplier = get_object_or_404(Supplier, id=id)
+
+    used = (
+        Book.objects.filter(publisher=supplier).exists() or
+        BoardGame.objects.filter(publisher=supplier).exists() or
+        Stationery.objects.filter(supplier=supplier).exists()
+    )
+
+    if used:
+        supplier.is_active = False
+        supplier.save()
+
+        messages.warning(
+            request,
+            "Поставщик используется в товарах → отправлен в архив"
+        )
+    else:
+        supplier.delete()
+        messages.success(
+            request,
+            "Поставщик удалён"
+        )
+
+    return redirect('admin_panel:supplier_list')
+
+def supplier_restore(request, id):
+    supplier = get_object_or_404(Supplier, id=id)
+    supplier.is_active = True
+    supplier.save()
+
+    return redirect('admin_panel:supplier_list')
+
+def genre_list(request):
+    genres = Genre.objects.all()
+    return render(request, 'admin_panel/dictionaries/genres/genres.html', {'genres': genres})
+
+def genre_create(request):
+    form = GenreForm(request.POST or None)
+
+    if form.is_valid():
+        form.save()
+        return redirect('admin_panel:genre_list')
+
+    return render(request, 'admin_panel/dictionaries/genres/genre_form.html', {'form': form})
+
+def genre_delete(request, id):
+    genre = get_object_or_404(Genre, id=id)
+
+    if genre.book_set.exists():
+        messages.error(request, "Нельзя удалить — используется в книгах")
+        return redirect('admin_panel:genre_list')
+
+    genre.delete()
+    return redirect('admin_panel:genre_list')
+
+def author_list(request):
+    authors = Author.objects.all()
+    return render(request, 'admin_panel/dictionaries/authors/authors.html', {'authors': authors})
+
+def author_create(request):
+    form = AuthorForm(request.POST or None)
+
+    if form.is_valid():
+        form.save()
+        return redirect('admin_panel:author_list')
+
+    return render(request, 'admin_panel/dictionaries/authors/author_form.html', {'form': form})
+
+def author_delete(request, id):
+    author = get_object_or_404(Author, id=id)
+
+    if author.book_set.exists():
+        messages.error(request, "Нельзя удалить — автор используется в книгах")
+        return redirect('admin_panel:author_list')
+
+    author.delete()
+    return redirect('admin_panel:author_list')
+
+def tag_list(request):
+    tags = Tag.objects.all()
+    return render(request, 'admin_panel/dictionaries/tags/tags.html', {'tags': tags})
+
+def tag_create(request):
+    form = TagForm(request.POST or None)
+
+    if form.is_valid():
+        form.save()
+        return redirect('admin_panel:tag_list')
+
+    return render(request, 'admin_panel/dictionaries/tags/tag_form.html', {'form': form})
+
+def tag_delete(request, id):
+    tag = get_object_or_404(Tag, id=id)
+
+    if Book.objects.filter(tags=tag).exists():
+        messages.error(request, "Нельзя удалить — тег используется в книгах")
+        return redirect('admin_panel:tag_list')
+
+    tag.delete()
+    return redirect('admin_panel:tag_list')
+
+def dictionaries(request):
+    return render(request, 'admin_panel/dictionaries/index.html')
 
 @login_required
 @admin_required

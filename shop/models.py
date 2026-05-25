@@ -55,6 +55,7 @@ class Supplier(models.Model):
     name = models.CharField(max_length=255, verbose_name="Название")
     phone = models.CharField(max_length=20, verbose_name="Телефон")
     email = models.EmailField(blank=True, null=True, verbose_name="Email")
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Поставщик"

@@ -1,0 +1,29 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block content %}
+
+<h1>Жанры</h1>
+
+<a href="{% url 'admin_panel:genre_create' %}" class="btn">
+    + Добавить жанр
+</a>
+
+<div class="list">
+
+    {% for genre in genres %}
+        <div class="list-item">
+
+            <span>{{ genre.name }}</span>
+
+            <a href="{% url 'admin_panel:genre_delete' genre.id %}">
+                Удалить
+            </a>
+
+        </div>
+    {% empty %}
+        <p>Жанров пока нет</p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}
