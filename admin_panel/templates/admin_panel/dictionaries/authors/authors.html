@@ -1,31 +1,53 @@
 {% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin_panel/css/index.css' %}">
+{% endblock %}
 
 {% block content %}
 
-<h1>Авторы</h1>
+<div class="container">
+    <h1>Авторы</h1>
 
-<a href="{% url 'admin_panel:author_create' %}" class="btn">
-    + Добавить автора
-</a>
+    <div class="action-bar">
+        <a href="{% url 'admin_panel:author_create' %}" class="btn">
+            Добавить автора
+        </a>
 
-<div class="list">
+        <form method="get" class="search-box">
+            <input type="text" name="q" placeholder="Поиск по фамилии, имени, отчеству..." value="{{ search_query }}">
+            <button type="submit">Найти</button>
+            {% if search_query %}
+                <a href="{% url 'admin_panel:author_list' %}" class="clear-btn">Очистить</a>
+            {% endif %}
+        </form>
+    </div>
 
-    {% for author in authors %}
-        <div class="list-item">
+    <div class="list">
+        {% for author in authors %}
+            <div class="list-item">
+                <span>
+                    {{ author.last_name }} {{ author.first_name }} {{ author.middle_name|default:"" }}
+                </span>
+                <a href="{% url 'admin_panel:author_delete' author.id %}" onclick="return confirm('Удалить автора «{{ author.last_name }} {{ author.first_name }}»?')">
+                    Удалить
+                </a>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                {% if search_query %}
+                    Авторы по запросу «{{ search_query }}» не найдены
+                {% else %}
+                    Авторы отсутствуют
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
 
-            <span>
-                {{ author.last_name }} {{ author.first_name }} {{ author.middle_name }}
-            </span>
-
-            <a href="{% url 'admin_panel:author_delete' author.id %}">
-                Удалить
-            </a>
-
-        </div>
-    {% empty %}
-        <p>Авторы отсутствуют</p>
-    {% endfor %}
-
+    <a href="javascript:history.back()" class="back-link">
+        ← Назад
+    </a>
 </div>
 
 {% endblock %}

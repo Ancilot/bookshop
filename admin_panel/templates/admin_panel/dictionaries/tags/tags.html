@@ -1,29 +1,51 @@
 {% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin_panel/css/index.css' %}">
+{% endblock %}
 
 {% block content %}
 
-<h1>Теги</h1>
+<div class="container">
+    <h1>Теги</h1>
 
-<a href="{% url 'admin_panel:tag_create' %}" class="btn">
-    + Добавить тег
-</a>
+    <div class="action-bar">
+        <a href="{% url 'admin_panel:tag_create' %}" class="btn">
+            Добавить тег
+        </a>
 
-<div class="list">
+        <form method="get" class="search-box">
+            <input type="text" name="q" placeholder="Поиск по названию тега..." value="{{ search_query }}">
+            <button type="submit">Найти</button>
+            {% if search_query %}
+                <a href="{% url 'admin_panel:tag_list' %}" class="clear-btn">Очистить</a>
+            {% endif %}
+        </form>
+    </div>
 
-    {% for tag in tags %}
-        <div class="list-item">
+    <div class="list">
+        {% for tag in tags %}
+            <div class="list-item">
+                <span>#{{ tag.name }}</span>
+                <a href="{% url 'admin_panel:tag_delete' tag.id %}" onclick="return confirm('Удалить тег «{{ tag.name }}»?')">
+                    Удалить
+                </a>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                {% if search_query %}
+                    Теги по запросу «{{ search_query }}» не найдены
+                {% else %}
+                    Тегов пока нет
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
 
-            <span>{{ tag.name }}</span>
-
-            <a href="{% url 'admin_panel:tag_delete' tag.id %}">
-                Удалить
-            </a>
-
-        </div>
-    {% empty %}
-        <p>Тегов пока нет</p>
-    {% endfor %}
-
+    <a href="javascript:history.back()" class="back-link">
+        ← Назад
+    </a>
 </div>
 
 {% endblock %}

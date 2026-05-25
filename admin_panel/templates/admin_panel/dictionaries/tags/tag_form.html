@@ -1,22 +1,52 @@
 {% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin_panel/css/index.css' %}">
+{% endblock %}
 
 {% block content %}
 
-<h1>Форма</h1>
+<div class="container">
+    <div class="form-container">
+        <h1>
+            {% if form.instance.pk %}
+                Редактирование
+            {% else %}
+                Создание
+            {% endif %}
+        </h1>
 
-<form method="post">
-    {% csrf_token %}
+        <form method="post">
+            {% csrf_token %}
 
-    {{ form.as_p }}
+            {% for field in form %}
+                <p>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <small style="color: var(--danger);">{{ field.errors|join:", " }}</small>
+                    {% endif %}
+                    {% if field.help_text %}
+                        <small style="color: var(--gray); display: block;">{{ field.help_text }}</small>
+                    {% endif %}
+                </p>
+            {% endfor %}
 
-    <button type="submit" class="btn">
-        Сохранить
-    </button>
+            <div class="form-actions">
+                <button type="submit" class="btn">
+                    Сохранить
+                </button>
+                <a href="javascript:history.back()" class="btn btn-secondary">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
 
-</form>
-
-<a href="javascript:history.back()">
-    Назад
-</a>
+    <a href="javascript:history.back()" class="back-link">
+        ← Назад к списку
+    </a>
+</div>
 
 {% endblock %}

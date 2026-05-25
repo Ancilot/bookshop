@@ -2,6 +2,7 @@ from .forms import PriceForm, AuthorForm, TagForm
 from django.contrib.auth.decorators import (
     login_required
 )
+from django.db.models import Q
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from shop.models import Category, Price
@@ -50,12 +51,28 @@ from shop.models import Supplier
 from .forms import SupplierForm
 
 def supplier_list(request):
+    q = request.GET.get('q')
+
     suppliers = Supplier.objects.filter(is_active=True)
     archived_suppliers = Supplier.objects.filter(is_active=False)
-    return render(request, 'admin_panel/dictionaries/suppliers/suppliers.html', {
-        'suppliers': suppliers,
-        'archived_suppliers': archived_suppliers,
-    })
+
+    if q:
+        suppliers = suppliers.filter(
+            name__icontains=q
+        )
+
+        archived_suppliers = archived_suppliers.filter(
+            name__icontains=q
+        )
+
+    return render(
+        request,
+        'admin_panel/dictionaries/suppliers/suppliers.html',
+        {
+            'suppliers': suppliers,
+            'archived_suppliers': archived_suppliers,
+        }
+    )
 
 def supplier_create(request):
     form = SupplierForm(request.POST or None)
@@ -100,9 +117,16 @@ def supplier_restore(request, id):
     return redirect('admin_panel:supplier_list')
 
 def genre_list(request):
-    genres = Genre.objects.all()
-    return render(request, 'admin_panel/dictionaries/genres/genres.html', {'genres': genres})
+    q = request.GET.get('q')
 
+    genres = Genre.objects.all()
+
+    if q:
+        genres = genres.filter(name__icontains=q)
+
+    return render(request, 'admin_panel//dictionaries/genres/genres.html', {
+        'genres': genres
+    })
 def genre_create(request):
     form = GenreForm(request.POST or None)
 
@@ -123,8 +147,20 @@ def genre_delete(request, id):
     return redirect('admin_panel:genre_list')
 
 def author_list(request):
+    q = request.GET.get('q')
+
     authors = Author.objects.all()
-    return render(request, 'admin_panel/dictionaries/authors/authors.html', {'authors': authors})
+
+    if q:
+        authors = authors.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(middle_name__icontains=q)
+        )
+
+    return render(request, 'admin_panel/dictionaries/authors/authors.html', {
+        'authors': authors
+    })
 
 def author_create(request):
     form = AuthorForm(request.POST or None)
@@ -146,8 +182,16 @@ def author_delete(request, id):
     return redirect('admin_panel:author_list')
 
 def tag_list(request):
+    q = request.GET.get('q')
+
     tags = Tag.objects.all()
-    return render(request, 'admin_panel/dictionaries/tags/tags.html', {'tags': tags})
+
+    if q:
+        tags = tags.filter(name__icontains=q)
+
+    return render(request, 'admin_panel/dictionaries/tags/tags.html', {
+        'tags': tags
+    })
 
 def tag_create(request):
     form = TagForm(request.POST or None)

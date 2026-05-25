@@ -1,29 +1,51 @@
 {% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin_panel/css/index.css' %}">
+{% endblock %}
 
 {% block content %}
 
-<h1>Жанры</h1>
+<div class="container">
+    <h1>Жанры</h1>
 
-<a href="{% url 'admin_panel:genre_create' %}" class="btn">
-    + Добавить жанр
-</a>
+    <div class="action-bar">
+        <a href="{% url 'admin_panel:genre_create' %}" class="btn">
+            Добавить жанр
+        </a>
 
-<div class="list">
+        <form method="get" class="search-box">
+            <input type="text" name="q" placeholder="Поиск по названию жанра..." value="{{ search_query }}">
+            <button type="submit">Найти</button>
+            {% if search_query %}
+                <a href="{% url 'admin_panel:genre_list' %}" class="clear-btn">Очистить</a>
+            {% endif %}
+        </form>
+    </div>
 
-    {% for genre in genres %}
-        <div class="list-item">
+    <div class="list">
+        {% for genre in genres %}
+            <div class="list-item">
+                <span>{{ genre.name }}</span>
+                <a href="{% url 'admin_panel:genre_delete' genre.id %}" onclick="return confirm('Удалить жанр «{{ genre.name }}»?')">
+                    Удалить
+                </a>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                {% if search_query %}
+                    Жанры по запросу «{{ search_query }}» не найдены
+                {% else %}
+                    📭 Жанров пока нет
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
 
-            <span>{{ genre.name }}</span>
-
-            <a href="{% url 'admin_panel:genre_delete' genre.id %}">
-                Удалить
-            </a>
-
-        </div>
-    {% empty %}
-        <p>Жанров пока нет</p>
-    {% endfor %}
-
+    <a href="javascript:history.back()" class="back-link">
+        ← Назад
+    </a>
 </div>
 
 {% endblock %}
