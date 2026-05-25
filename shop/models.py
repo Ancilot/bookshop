@@ -1,8 +1,31 @@
 from django.db import models
 from django.urls import reverse
 from django.db.models import Q, UniqueConstraint
-from social_core.utils import slugify
+from django.utils.text import slugify
+from django.core.validators import MinValueValidator
+from decimal import Decimal
 
+class Price(models.Model):
+
+    value = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))],
+        verbose_name='Цена'
+    )
+
+    created = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания'
+    )
+
+    class Meta:
+        ordering = ['-created']
+        verbose_name = 'Цена'
+        verbose_name_plural = 'Цены'
+
+    def __str__(self):
+        return f"{self.value}"
 
 class Category(models.Model):
     name = models.CharField(max_length=255, verbose_name="Категория")
@@ -74,7 +97,12 @@ class ProductImage(models.Model):
 class Product(models.Model):
     name = models.CharField(max_length=255, verbose_name="Название")
     slug = models.SlugField(max_length=200, unique=True, blank=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена")
+    price = models.ForeignKey(
+        'Price',
+        on_delete=models.PROTECT,
+        related_name='products',
+        verbose_name='Цена'
+    )
     description = models.TextField(blank=True, verbose_name="Описание")
     category = models.ForeignKey(
         Category,

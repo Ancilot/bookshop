@@ -1,71 +1,117 @@
 {% extends "admin_panel/base.html" %}
-
+{% load static %}
 {% block content %}
 
-<h1>{% if product %}Редактировать{% else %}Добавить{% endif %} товар</h1>
+<div class="product-page">
 
-<form method="post" enctype="multipart/form-data" novalidate>
-    {% csrf_token %}
-
-    <h2>Основная информация</h2>
-
-    <div>
-        {{ product_form.name.label_tag }} {{ product_form.name }}<br><br>
-        {{ product_form.price.label_tag }} {{ product_form.price }}<br><br>
-        {{ product_form.description.label_tag }} {{ product_form.description }}<br><br>
-
-        {{ product_form.category.label_tag }}
-        {{ product_form.category }}
-
-        <br><br>
-
-        {{ product_form.available.label_tag }} {{ product_form.available }}
+    <div class="page-header">
+        <h1>
+            {% if product %}
+                Редактировать товар
+            {% else %}
+                Добавить товар
+            {% endif %}
+        </h1>
     </div>
 
-    <hr>
+    <form method="post" enctype="multipart/form-data" class="product-form" novalidate>
+        {% csrf_token %}
+         <link rel="stylesheet" href="{% static 'admin_panel/css/product_form.css' %}">
 
-    <h2>Изображения</h2>
+        <div class="card">
+            <h2>Основная информация</h2>
 
-    <div id="images-container">
-        <input type="file" name="images" class="image-input">
-    </div>
+            <div class="form-grid">
 
-    <button type="button" id="add-image-btn">+ Добавить ещё</button>
+                <div class="form-group">
+                    {{ product_form.name.label_tag }}
+                    {{ product_form.name }}
+                </div>
 
-    <hr>
+                <div class="form-group">
+                    {{ product_form.price.label_tag }}
+                    {{ product_form.price }}
+                </div>
 
-    <div id="images-list">
-        {% for img in images %}
-        <div class="img-item" data-id="{{ img.id }}">
-            <img src="{{ img.image.url }}" width="150">
+                <div class="form-group full-width">
+                    {{ product_form.description.label_tag }}
+                    {{ product_form.description }}
+                </div>
 
-            <label>
-                <input type="radio"
-                       name="main_image"
-                       value="old_{{ img.id }}"
-                       {% if img.is_main %}checked{% endif %}>
-                Главное
-            </label>
+                <div class="form-group">
+                    {{ product_form.category.label_tag }}
+                    {{ product_form.category }}
+                </div>
 
-            <button type="button" class="delete-old">✕</button>
+                <div class="form-group checkbox-group">
+                    {{ product_form.available.label_tag }}
+                    {{ product_form.available }}
+                </div>
+
+            </div>
         </div>
-        {% endfor %}
-    </div>
 
-    <div id="preview-container"></div>
+        <div class="card">
+            <div class="images-header">
+                <h2>Изображения</h2>
 
-    <hr>
+                <button type="button" id="add-image-btn" class="btn-secondary">
+                    + Добавить
+                </button>
+            </div>
 
-    <div id="category-fields">
-        {% if category_form %}
-            {{ category_form.as_p }}
-        {% endif %}
-    </div>
+            <div id="images-container">
+                <input type="file" name="images" class="image-input">
+            </div>
 
-    <br>
+            <!-- СТАРЫЕ -->
+            <div id="images-list" class="image-grid">
+                {% for img in images %}
+                <div class="image-card img-item" data-id="{{ img.id }}">
 
-    <button type="submit">Сохранить</button>
-</form>
+                    <img src="{{ img.image.url }}" alt="image">
+
+                    <div class="image-actions">
+
+                        <label class="radio-label">
+                            <input type="radio"
+                                   name="main_image"
+                                   value="old_{{ img.id }}"
+                                   {% if img.is_main %}checked{% endif %}>
+                            Главное изображение
+                        </label>
+
+                        <button type="button" class="delete-old delete-btn">
+                            ✕
+                        </button>
+
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div id="preview-container" class="image-grid"></div>
+
+        </div>
+
+        <div class="card">
+            <h2>Дополнительные характеристики</h2>
+
+            <div id="category-fields">
+                {% if category_form %}
+                    {{ category_form.as_p }}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="submit-box">
+            <button type="submit" class="btn-primary">
+                Сохранить
+            </button>
+        </div>
+
+    </form>
+</div>
 
 
 <script>
@@ -75,109 +121,118 @@ document.addEventListener('DOMContentLoaded', function () {
     const categoryField = document.getElementById('id_category');
     const categoryBox = document.getElementById('category-fields');
 
-    if (!categoryField || !categoryBox) return;
+    if (categoryField && categoryBox) {
 
-    function loadCategoryForm(categoryId) {
+        function loadCategoryForm(categoryId) {
 
-        if (!categoryId) {
-            categoryBox.innerHTML = "";
-            return;
+            if (!categoryId) {
+                categoryBox.innerHTML = "";
+                return;
+            }
+
+            fetch(`/admin-panel/ajax/load-category-form/?category_id=${categoryId}&product_id={{ product.id }}`)
+                .then(r => r.json())
+                .then(data => {
+                    categoryBox.innerHTML = data.html;
+                })
+                .catch(err => console.error(err));
         }
 
-        fetch(`/admin-panel/ajax/load-category-form/?category_id=${categoryId}&product_id={{ product.id }}`)
-            .then(r => r.json())
-            .then(data => {
-                categoryBox.innerHTML = data.html;
-            })
-            .catch(err => console.error(err));
+        loadCategoryForm(categoryField.value);
+
+        categoryField.addEventListener('change', function () {
+            loadCategoryForm(this.value);
+        });
     }
 
-    // init load
-    loadCategoryForm(categoryField.value);
+    const container = document.getElementById('images-container');
+    const preview = document.getElementById('preview-container');
+    const addBtn = document.getElementById('add-image-btn');
 
-    // change handler
-    categoryField.addEventListener('change', function () {
-        loadCategoryForm(this.value);
-    });
+    function rebuildPreview() {
 
-});
+        preview.innerHTML = '';
 
-const container = document.getElementById('images-container');
-const preview = document.getElementById('preview-container');
-const addBtn = document.getElementById('add-image-btn');
+        document.querySelectorAll('.image-input').forEach((input, index) => {
 
-function rebuildPreview() {
-    preview.innerHTML = '';
+            if (!input.files.length) return;
 
-    document.querySelectorAll('.image-input').forEach((input, index) => {
+            const file = input.files[0];
+            const reader = new FileReader();
 
-        if (!input.files.length) return;
+            reader.onload = function(e) {
 
-        const file = input.files[0];
-        const reader = new FileReader();
+                const div = document.createElement('div');
+                div.classList.add('image-card');
 
-        reader.onload = function(e) {
+                div.innerHTML = `
+                    <img src="${e.target.result}" alt="preview">
 
-            const div = document.createElement('div');
+                    <div class="image-actions">
 
-            div.innerHTML = `
-                <img src="${e.target.result}" width="150">
+                        <label class="radio-label">
+                            <input type="radio"
+                                   name="main_image"
+                                   value="new_${index}">
+                            Главное
+                        </label>
 
-                <label>
-                    <input type="radio"
-                           name="main_image"
-                           value="new_${index}">
-                    Главное
-                </label>
+                        <button type="button" class="delete-new delete-btn">
+                            ✕
+                        </button>
 
-                <button type="button" class="delete-new">✕</button>
-            `;
+                    </div>
+                `;
 
-            preview.appendChild(div);
+                preview.appendChild(div);
 
-            div.querySelector('.delete-new').addEventListener('click', () => {
-                input.value = "";
-                div.remove();
-            });
-        };
+                div.querySelector('.delete-new').addEventListener('click', () => {
+                    input.value = "";
+                    div.remove();
+                });
+            };
 
-        reader.readAsDataURL(file);
-    });
-}
+            reader.readAsDataURL(file);
+        });
+    }
 
-// add input
-addBtn.addEventListener('click', () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.name = 'images';
-    input.classList.add('image-input');
-
-    input.addEventListener('change', rebuildPreview);
-    container.appendChild(input);
-});
-
-// init existing inputs
-document.querySelectorAll('.image-input')
-    .forEach(input => input.addEventListener('change', rebuildPreview));
-
-
-// delete old images
-document.addEventListener('click', function(e) {
-
-    if (e.target.classList.contains('delete-old')) {
-
-        const item = e.target.closest('.img-item');
-        const id = item.dataset.id;
-
-        item.remove();
+    addBtn.addEventListener('click', () => {
 
         const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'delete_image';
-        input.value = id;
 
-        document.querySelector('form').appendChild(input);
-    }
+        input.type = 'file';
+        input.name = 'images';
+        input.classList.add('image-input');
+
+        input.addEventListener('change', rebuildPreview);
+
+        container.appendChild(input);
+
+        input.click();
+    });
+
+    document.querySelectorAll('.image-input')
+        .forEach(input => input.addEventListener('change', rebuildPreview));
+
+    document.addEventListener('click', function(e) {
+
+        if (e.target.classList.contains('delete-old')) {
+
+            const item = e.target.closest('.img-item');
+            const id = item.dataset.id;
+
+            item.remove();
+
+            const input = document.createElement('input');
+
+            input.type = 'hidden';
+            input.name = 'delete_image';
+            input.value = id;
+
+            document.querySelector('form').appendChild(input);
+        }
+    });
+
 });
 
 </script>
