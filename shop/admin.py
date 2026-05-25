@@ -101,8 +101,7 @@ class BookAdmin(admin.ModelAdmin):
     list_display = [
         'product',
         'publisher',
-        'year',
-        'isbn'
+        'year'
     ]
 
     list_filter = [
@@ -111,8 +110,7 @@ class BookAdmin(admin.ModelAdmin):
     ]
 
     search_fields = [
-        'product__name',
-        'isbn'
+        'product__name'
     ]
 
     filter_horizontal = [

@@ -12,6 +12,7 @@ class ProductForm(forms.ModelForm):
             'available'
         ]
 
+
 class PriceForm(forms.ModelForm):
     class Meta:
         model = Price
@@ -22,11 +23,29 @@ class BookForm(forms.ModelForm):
         model = Book
         exclude = ['product']
 
+        widgets = {
+            'year': forms.NumberInput(attrs={
+                'min': 0,
+                'step': 1,
+            }),
+            'pages': forms.NumberInput(attrs={
+                'min': 1,
+                'step': 1,
+            })
+        }
+
 
 class BoardGameForm(forms.ModelForm):
     class Meta:
         model = BoardGame
         exclude = ['product']
+
+        widgets = {
+        'year': forms.NumberInput(attrs={
+            'min': 0,
+            'step': 1,
+        })
+        }
 
 
 class StationeryForm(forms.ModelForm):

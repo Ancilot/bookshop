@@ -29,7 +29,9 @@ from shop.models import (
     Book,
     BoardGame,
     Stationery,
-    Author
+    Author,
+    Genre,
+    Tag
 )
 
 from .decorators import admin_required
@@ -45,6 +47,9 @@ from admin_panel.constant import (
     CATEGORY_MAP,
     RELATED_MAP
 )
+
+
+
 
 @login_required
 @admin_required
@@ -130,9 +135,7 @@ def product_create(request):
         'category_form': category_form,
         'price_form': price_form,
     })
-#
-# PRODUCT LIST
-#
+
 def load_category_form(request):
 
     category_id = request.GET.get('category_id')

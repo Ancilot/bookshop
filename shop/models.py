@@ -210,7 +210,6 @@ class Book(models.Model):
     publisher = models.ForeignKey(Supplier, on_delete=models.CASCADE, verbose_name="Издательство")
     year = models.IntegerField(verbose_name="Год издания")
     pages = models.IntegerField(blank=True, null=True, verbose_name="Страниц")
-    isbn = models.CharField(max_length=20, blank=True, verbose_name="ISBN")
 
     class Meta:
         verbose_name = "Книга"
