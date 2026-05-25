@@ -1,5 +1,5 @@
 from django import forms
-from shop.models import Product, Book, BoardGame, Stationery
+from shop.models import Product, Book, BoardGame, Stationery, Price
 
 
 class ProductForm(forms.ModelForm):
@@ -7,12 +7,15 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = [
             'name',
-            'price',
             'description',
             'category',
             'available'
         ]
 
+class PriceForm(forms.ModelForm):
+    class Meta:
+        model = Price
+        fields = ['value']
 
 class BookForm(forms.ModelForm):
     class Meta:

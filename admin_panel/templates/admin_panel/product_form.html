@@ -29,8 +29,8 @@
                 </div>
 
                 <div class="form-group">
-                    {{ product_form.price.label_tag }}
-                    {{ product_form.price }}
+                    {{ price_form.value.label_tag }}
+                    {{ price_form.value }}
                 </div>
 
                 <div class="form-group full-width">
@@ -41,6 +41,9 @@
                 <div class="form-group">
                     {{ product_form.category.label_tag }}
                     {{ product_form.category }}
+                    <small id="category-error" style="color: red; display: none;">
+                        Выберите категорию
+                    </small>
                 </div>
 
                 <div class="form-group checkbox-group">
@@ -64,7 +67,6 @@
                 <input type="file" name="images" class="image-input">
             </div>
 
-            <!-- СТАРЫЕ -->
             <div id="images-list" class="image-grid">
                 {% for img in images %}
                 <div class="image-card img-item" data-id="{{ img.id }}">
@@ -121,6 +123,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const categoryField = document.getElementById('id_category');
     const categoryBox = document.getElementById('category-fields');
 
+    const form = document.querySelector('.product-form');
+    const categoryError = document.getElementById('category-error');
+
+    if (form && categoryField) {
+
+        form.addEventListener('submit', function (e) {
+
+            if (!categoryField.value) {
+                e.preventDefault();
+
+                categoryError.style.display = 'block';
+                categoryField.focus();
+            } else {
+                categoryError.style.display = 'none';
+            }
+        });
+
+        categoryField.addEventListener('change', function () {
+            if (this.value) {
+            categoryError.style.display = 'none';
+            }
+        });
+    }
     if (categoryField && categoryBox) {
 
         function loadCategoryForm(categoryId) {

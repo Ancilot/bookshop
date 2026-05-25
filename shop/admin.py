@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import (
     Category,
     Supplier,
@@ -9,13 +10,19 @@ from .models import (
     Tag,
     Book,
     BoardGame,
-    Stationery
+    Stationery,
+    Price
 )
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 1
 
+class PriceInline(admin.TabularInline):
+    model = Price
+    extra = 1
+    readonly_fields = ['created']
+    fields = ['value', 'created']
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -32,7 +39,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = [
         'name',
         'category',
-        'price',
+        'get_price',
         'available',
         'created'
     ]
@@ -45,7 +52,6 @@ class ProductAdmin(admin.ModelAdmin):
     ]
 
     list_editable = [
-        'price',
         'available'
     ]
 
@@ -58,7 +64,12 @@ class ProductAdmin(admin.ModelAdmin):
         'slug': ('name',)
     }
 
-    inlines = [ProductImageInline]
+    inlines = [ProductImageInline, PriceInline]
+
+    @admin.display(description='Цена')
+    def get_price(self, obj):
+        price = obj.prices.first()
+        return price.value if price else "—"
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):

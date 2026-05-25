@@ -3,13 +3,13 @@ from django.shortcuts import (
     redirect,
     get_object_or_404
 )
-
+from .forms import PriceForm
 from django.contrib.auth.decorators import (
     login_required
 )
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-from shop.models import Category
+from shop.models import Category, Price
 from django.db.models import Sum
 from django.utils.dateparse import parse_date
 from django.http import HttpResponse
@@ -52,6 +52,7 @@ def product_create(request):
 
     product_form = ProductForm(request.POST or None)
 
+    price_form = PriceForm(request.POST or None)
     category_slug = None
     category_form = None
 
@@ -68,7 +69,8 @@ def product_create(request):
             category_form = form_class(request.POST)
 
         # validashion
-        forms_valid = product_form.is_valid()
+
+        forms_valid = product_form.is_valid() and price_form.is_valid()
 
         if category_form:
             forms_valid = forms_valid and category_form.is_valid()
@@ -76,6 +78,10 @@ def product_create(request):
         if forms_valid:
 
             product = product_form.save()
+
+            price = price_form.save(commit=False)
+            price.product = product
+            price.save()
 
             # category save
             if category_form:
@@ -122,6 +128,7 @@ def product_create(request):
     return render(request, 'admin_panel/product_form.html', {
         'product_form': product_form,
         'category_form': category_form,
+        'price_form': price_form,
     })
 #
 # PRODUCT LIST
@@ -158,15 +165,19 @@ def load_category_form(request):
 
 def product_list(request):
 
-    products = Product.objects.all()
+    active_products = Product.objects.filter(available=True)
+    inactive_products = Product.objects.filter(available=False)
 
-    return render(
-        request,
-        'admin_panel/product_list.html',
-        {
-            'products': products
-        }
-    )
+    return render(request, 'admin_panel/product_list.html', {
+        'active_products': active_products,
+        'inactive_products': inactive_products,
+    })
+
+def product_restore(request, id):
+    product = get_object_or_404(Product, id=id)
+    product.available = True
+    product.save()
+    return redirect('admin_panel:product_list')
 
 # print("BOOK DATA:", request.POST.get("publisher"), type(request.POST.get("publisher")))
        # print("YEAR DATA:", request.POST.get("year"), type(request.POST.get("year")))
@@ -189,6 +200,12 @@ def product_update(request, id):
     product_form = ProductForm(
         request.POST or None,
         instance=product
+    )
+    price_instance = product.prices.first()
+
+    price_form = PriceForm(
+        request.POST or None,
+        instance=price_instance
     )
 
     # slag
@@ -219,6 +236,16 @@ def product_update(request, id):
         ):
 
             product = product_form.save()
+
+            if price_form.is_valid():
+                price_value = price_form.cleaned_data['value']
+
+                last_price = product.prices.first()
+
+                if not last_price or last_price.value != price_value:
+                    Price.objects.create(product=product, value=price_value)
+            else:
+                price_value = None
 
             # save
             if category_form:
@@ -286,20 +313,19 @@ def product_update(request, id):
         'category_form': category_form,
         'product': product,
         'images': images,
+        'price_form': price_form,
     })
 
 def product_delete(request, id):
+    product = get_object_or_404(Product, id=id)
 
-    product = get_object_or_404(
-        Product,
-        id=id
-    )
+    if product.orderitem_set.exists():
+        product.available = False
+        product.save()
+    else:
+        product.delete()
 
-    product.delete()
-
-    return redirect(
-        'admin_panel:product_list'
-    )
+    return redirect('admin_panel:product_list')
 
 
 @admin_required
@@ -496,3 +522,4 @@ def reports(request):
         'admin_panel/reports.html',
         context
     )
+

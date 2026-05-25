@@ -8,6 +8,8 @@
     Добавить товар
 </a>
 
+<h2>Доступные товары</h2>
+
 <table>
 
     <tr>
@@ -18,31 +20,21 @@
         <th></th>
     </tr>
 
-    {% for product in products %}
+    {% for product in active_products %}
 
     <tr>
 
         <td>
-
             {% if product.get_main_image %}
-
-                <img
-                    src="{{ product.get_main_image.image.url }}"
-                    width="80"
-                >
-
+                <img src="{{ product.get_main_image.image.url }}" width="80">
             {% endif %}
-
         </td>
 
         <td>{{ product.name }}</td>
-
         <td>{{ product.price }}</td>
-
         <td>{{ product.category.name }}</td>
 
         <td>
-
             <a href="{% url 'admin_panel:product_update' product.id %}">
                 Изменить
             </a>
@@ -50,11 +42,58 @@
             <a href="{% url 'admin_panel:product_delete' product.id %}">
                 Удалить
             </a>
-
         </td>
 
     </tr>
 
+    {% empty %}
+        <tr><td colspan="5">Нет доступных товаров</td></tr>
+    {% endfor %}
+
+</table>
+
+<hr>
+
+<h2>Скрытые товары</h2>
+
+<table>
+
+    <tr>
+        <th>Фото</th>
+        <th>Название</th>
+        <th>Цена</th>
+        <th>Категория</th>
+        <th></th>
+    </tr>
+
+    {% for product in inactive_products %}
+
+    <tr style="opacity: 0.5;">
+
+        <td>
+            {% if product.get_main_image %}
+                <img src="{{ product.get_main_image.image.url }}" width="80">
+            {% endif %}
+        </td>
+
+        <td>{{ product.name }}</td>
+        <td>{{ product.price }}</td>
+        <td>{{ product.category.name }}</td>
+
+        <td>
+            <a href="{% url 'admin_panel:product_update' product.id %}">
+                Изменить
+            </a>
+
+            <a href="{% url 'admin_panel:product_restore' product.id %}">
+                Восстановить
+            </a>
+        </td>
+
+    </tr>
+
+    {% empty %}
+        <tr><td colspan="5">Нет скрытых товаров</td></tr>
     {% endfor %}
 
 </table>

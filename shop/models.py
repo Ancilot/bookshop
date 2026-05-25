@@ -6,6 +6,12 @@ from django.core.validators import MinValueValidator
 from decimal import Decimal
 
 class Price(models.Model):
+    product = models.ForeignKey(
+        'Product',
+        on_delete=models.CASCADE,
+        related_name='prices',
+        verbose_name='Товар'
+    )
 
     value = models.DecimalField(
         max_digits=10,
@@ -21,8 +27,6 @@ class Price(models.Model):
 
     class Meta:
         ordering = ['-created']
-        verbose_name = 'Цена'
-        verbose_name_plural = 'Цены'
 
     def __str__(self):
         return f"{self.value}"
@@ -97,16 +101,10 @@ class ProductImage(models.Model):
 class Product(models.Model):
     name = models.CharField(max_length=255, verbose_name="Название")
     slug = models.SlugField(max_length=200, unique=True, blank=True)
-    price = models.ForeignKey(
-        'Price',
-        on_delete=models.PROTECT,
-        related_name='products',
-        verbose_name='Цена'
-    )
     description = models.TextField(blank=True, verbose_name="Описание")
     category = models.ForeignKey(
         Category,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,blank=False, null=False,
         related_name='products',
         verbose_name="Категория"
     )
@@ -121,6 +119,14 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_price_value(self):
+        price = self.prices.first()
+        return price.value if price else None
+
+    @property
+    def price(self):
+        return self.get_price_value()
 
     def get_absolute_url(self):
         return reverse('shop:product_detail', args=[self.id, self.slug])
