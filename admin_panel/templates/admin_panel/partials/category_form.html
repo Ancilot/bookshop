@@ -1,3 +1,24 @@
-{% if category_form %}
-    {{ category_form.as_p }}
-{% endif %}
+<div id="category-fields">
+    {% if category_form %}
+
+        {% for field in category_form %}
+            <div class="form-group">
+                
+                <label>
+                    {{ field.label }}
+                    {% if field.field.required %}
+                        <span style="color:red">*</span>
+                    {% endif %}
+                </label>
+
+                {{ field }}
+
+                {% if field.errors %}
+                    <small style="color:red">{{ field.errors }}</small>
+                {% endif %}
+
+            </div>
+        {% endfor %}
+
+    {% endif %}
+</div>

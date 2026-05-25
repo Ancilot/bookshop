@@ -108,7 +108,7 @@ class Product(models.Model):
         related_name='products',
         verbose_name="Категория"
     )
-    available = models.BooleanField(default=True, verbose_name="Доступен")
+    available = models.BooleanField(default=True, verbose_name="Доступен для продажи")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -204,7 +204,7 @@ class Book(models.Model):
         related_name='book',
         verbose_name="Товар"
     )
-    authors = models.ManyToManyField(Author, blank=True, verbose_name="Авторы")
+    authors = models.ManyToManyField(Author, blank=False, verbose_name="Авторы")
     genres = models.ManyToManyField(Genre, blank=True, verbose_name="Жанры")
     tags = models.ManyToManyField(Tag, blank=True, verbose_name="Теги")
     publisher = models.ForeignKey(Supplier, on_delete=models.CASCADE, verbose_name="Издательство")
@@ -247,7 +247,7 @@ class Stationery(models.Model):
         related_name='stationery',
         verbose_name="Товар"
     )
-    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, verbose_name="Поставщик")
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE,blank=True,null=True, verbose_name="Поставщик")
 
     class Meta:
         verbose_name = "Канцелярский товар"

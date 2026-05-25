@@ -26,11 +26,17 @@
                 <div class="form-group">
                     {{ product_form.name.label_tag }}
                     {{ product_form.name }}
+                    <small class="error" data-error="name" style="display:none;color:red;">
+                        Введите название товара
+                    </small>
                 </div>
 
                 <div class="form-group">
                     {{ price_form.value.label_tag }}
                     {{ price_form.value }}
+                    <small class="error" data-error="value" style="display:none;color:red;">
+                         Введите цену
+                    </small>
                 </div>
 
                 <div class="form-group full-width">
@@ -119,7 +125,47 @@
 <script>
 
 document.addEventListener('DOMContentLoaded', function () {
+function validateCategoryFields() {
+    let valid = true;
 
+    document.querySelectorAll('#category-fields input, #category-fields select, #category-fields textarea')
+        .forEach(field => {
+
+            const isRequired = field.required || field.getAttribute('required');
+            const error = document.querySelector(`[data-error="${field.name}"]`);
+
+            let empty = false;
+
+            if (field.type === 'checkbox') {
+                empty = !field.checked;
+            } else {
+                empty = !field.value;
+            }
+
+            if (isRequired && empty) {
+                valid = false;
+                if (error) error.style.display = 'block';
+            } else {
+                if (error) error.style.display = 'none';
+            }
+        });
+
+    return valid;
+}
+
+const priceField = document.getElementById('id_value');
+
+if (priceField) {
+
+    priceField.addEventListener('keypress', function (e) {
+
+        const allowed = /[0-9,]/;
+
+        if (!allowed.test(e.key)) {
+            e.preventDefault();
+        }
+    });
+}
     const categoryField = document.getElementById('id_category');
     const categoryBox = document.getElementById('category-fields');
 
@@ -128,17 +174,50 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (form && categoryField) {
 
-        form.addEventListener('submit', function (e) {
+       form.addEventListener('submit', function (e) {
 
-            if (!categoryField.value) {
-                e.preventDefault();
+            let ok = true;
 
-                categoryError.style.display = 'block';
-                categoryField.focus();
+            // 1. категория
+                if (!categoryField.value) {
+                    categoryError.style.display = 'block';
+                    ok = false;
             } else {
                 categoryError.style.display = 'none';
             }
+
+            // 2. название
+            const nameField = document.getElementById('id_name');
+            const nameError = document.querySelector('[data-error="name"]');
+
+            if (!nameField.value.trim()) {
+                if (nameError) nameError.style.display = 'block';
+                ok = false;
+            } else {
+                   if (nameError) nameError.style.display = 'none';
+            }
+
+             // 3. цена
+            const priceField = document.getElementById('id_value');
+            const priceError = document.querySelector('[data-error="value"]');
+
+            if (!priceField.value.trim()) {
+                if (priceError) priceError.style.display = 'block';
+                ok = false;
+            } else {
+                if (priceError) priceError.style.display = 'none';
+            }
+
+            // 4. доп поля
+            if (!validateCategoryFields()) {
+                 ok = false;
+            }
+
+            if (!ok) {
+                e.preventDefault();
+            }
         });
+
 
         categoryField.addEventListener('change', function () {
             if (this.value) {
@@ -236,6 +315,12 @@ document.addEventListener('DOMContentLoaded', function () {
         input.click();
     });
 
+document.addEventListener('input', function(e) {
+    const error = document.querySelector(`[data-error="${e.target.name}"]`);
+    if (error && e.target.value) {
+        error.style.display = 'none';
+    }
+});
     document.querySelectorAll('.image-input')
         .forEach(input => input.addEventListener('change', rebuildPreview));
 
