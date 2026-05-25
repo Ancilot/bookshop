@@ -1,11 +1,31 @@
 from django import forms
+from django.db.models.functions import Lower
+
 from shop.models import Product, Book, BoardGame, Stationery, Price, Genre, Author, Tag, Supplier
 from django.utils.timezone import now
+import re
+from django.core.exceptions import ValidationError
 
 class GenreForm(forms.ModelForm):
     class Meta:
         model = Genre
         fields = ['name']
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+
+        if name:
+            name = name.strip()
+
+        normalized = name.casefold()
+
+        for genre in Genre.objects.all():
+            if genre.name.casefold() == normalized:
+                raise forms.ValidationError(
+                    "Такой жанр уже существует"
+                )
+
+        return name
 
 class AuthorForm(forms.ModelForm):
     class Meta:
@@ -17,10 +37,47 @@ class TagForm(forms.ModelForm):
         model = Tag
         fields = ['name']
 
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+
+        if name:
+            name = name.strip()
+
+        normalized = name.casefold()
+
+        for tag in Tag.objects.all():
+            if tag.name.casefold() == normalized:
+                raise forms.ValidationError(
+                    "Такой тег уже существует"
+                )
+
+        return name
+
 class SupplierForm(forms.ModelForm):
     class Meta:
         model = Supplier
         fields = ['name', 'phone', 'email']
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+
+        if not phone:
+            return phone
+
+        # только цифры
+        if not phone.isdigit():
+            raise ValidationError("Телефон должен содержать только цифры")
+
+        # длина
+        if len(phone) != 11:
+            raise ValidationError("Телефон должен содержать 11 цифр")
+
+        # первая цифра
+        if phone[0] not in ('7', '8'):
+            raise ValidationError("Телефон должен начинаться с 7 или 8")
+
+        return phone
+
 CURRENT_YEAR = now().year
 
 class ProductForm(forms.ModelForm):

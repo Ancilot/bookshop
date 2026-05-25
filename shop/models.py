@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.functions import Lower
 from django.urls import reverse
 from django.db.models import Q, UniqueConstraint
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -53,7 +54,7 @@ class Category(models.Model):
 
 class Supplier(models.Model):
     name = models.CharField(max_length=255, verbose_name="Название")
-    phone = models.CharField(max_length=20, verbose_name="Телефон")
+    phone = models.CharField(max_length=11, verbose_name="Телефон")
     email = models.EmailField(blank=True, null=True, verbose_name="Email")
     is_active = models.BooleanField(default=True)
 
@@ -163,7 +164,7 @@ class Product(models.Model):
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=100, verbose_name="Жанр")
+    name = models.CharField(max_length=100, verbose_name="Жанр",unique=True)
 
     class Meta:
         verbose_name = "Жанр"
@@ -190,7 +191,7 @@ class Author(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=100, verbose_name="Тег", unique=True)
+    name = models.CharField(max_length=100, verbose_name="Тег",unique=True)
 
     class Meta:
         verbose_name = "Тег"
