@@ -1,7 +1,8 @@
+from django.db.models import Count
 from django.db import models
 from django.db.models.functions import Lower
 from django.urls import reverse
-from django.db.models import Q, UniqueConstraint
+from django.db.models import Q, UniqueConstraint, Avg
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
 from django.utils.timezone import now
@@ -116,6 +117,19 @@ class Product(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    def update_rating(self):
+        stats = self.reviews.aggregate(
+            avg_rating=Avg('rating'),
+            total=Count('id')
+        )
+
+        self.rating = stats['avg_rating'] or 0
+        self.rating_count = stats['total'] or 0
+
+        self.save(update_fields=['rating', 'rating_count'])
+    rating = models.FloatField(default=0)  # средний рейтинг
+    rating_count = models.PositiveIntegerField(default=0)  # сколько оценок
+
     class Meta:
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
@@ -160,6 +174,31 @@ class Product(models.Model):
             counter += 1
 
         return slug
+
+
+class Review(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    buyer = models.ForeignKey('account.Buyer', on_delete=models.CASCADE, related_name='reviews')
+    text = models.TextField()
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product', 'buyer'],
+                name='unique_review_per_buyer'
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.product.update_rating()
+
+    def __str__(self):
+        return f"{self.product} - {self.rating}"
 
 
 

@@ -95,17 +95,8 @@ def supplier_delete(request, id):
     if used:
         supplier.is_active = False
         supplier.save()
-
-        messages.warning(
-            request,
-            "Поставщик используется в товарах → отправлен в архив"
-        )
     else:
         supplier.delete()
-        messages.success(
-            request,
-            "Поставщик удалён"
-        )
 
     return redirect('admin_panel:supplier_list')
 

@@ -1,0 +1,34 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Отзыв{% endblock %}
+
+{% block content %}
+
+<div class="review-form">
+
+    <h1>Отзыв на {{ product.name }}</h1>
+
+    {% if review %}
+        <div class="notice">
+            Вы уже оставляли отзыв — можете его изменить
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit" class="btn">
+            {% if review %}
+                Обновить отзыв
+            {% else %}
+                Отправить отзыв
+            {% endif %}
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

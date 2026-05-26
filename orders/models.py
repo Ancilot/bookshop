@@ -7,9 +7,6 @@ class Order(models.Model):
     STATUS_CHOICES = [
         ('pending', 'В обработке'),
         ('paid', 'Оплачен'),
-        ('shipped', 'Отправлен'),
-        ('delivered', 'Доставлен'),
-        ('cancelled', 'Отменён'),
     ]
 
     buyer = models.ForeignKey(

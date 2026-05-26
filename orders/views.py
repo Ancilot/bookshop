@@ -30,7 +30,9 @@ def order_create(request):
             # создаём заказ
             order = Order.objects.create(
                 buyer=request.user.buyer,
-                address=address
+                address=address,
+                paid=True,
+                status='paid'
             )
 
             # создаём товары заказа

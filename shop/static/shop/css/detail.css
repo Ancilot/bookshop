@@ -125,4 +125,23 @@
     border-color:#4f46e5;
     transform:scale(1.05);
 }
+.review-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
 
+.review-avatar-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex: 0 0 40px;
+}
+
+.review-avatar-wrapper img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+}

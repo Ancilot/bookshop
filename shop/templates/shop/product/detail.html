@@ -25,6 +25,7 @@
 
 </div>
 
+
 <div class="product-detail">
 
     <div class="product-detail-header">
@@ -36,17 +37,9 @@
                 {% with main_image=product.get_main_image %}
 
                     {% if main_image %}
-                        <img
-                            src="{{ main_image.image.url }}"
-                            alt="{{ product.name }}"
-                            id="main-product-image"
-                        >
+                        <img src="{{ main_image.image.url }}" alt="{{ product.name }}" id="main-product-image">
                     {% else %}
-                        <img
-                            src="{% static 'shop/img/no-image.png' %}"
-                            alt="Нет изображения"
-                            id="main-product-image"
-                        >
+                        <img src="{% static 'shop/img/no-image.png' %}" alt="Нет изображения" id="main-product-image">
                     {% endif %}
 
                 {% endwith %}
@@ -55,20 +48,17 @@
 
             {% if product.images.all %}
                 <div class="gallery-thumbnails">
-
                     {% for image in product.images.all %}
-                        <img
-                            src="{{ image.image.url }}"
-                            alt="{{ product.name }}"
-                            class="thumbnail"
-                            onclick="changeImage(this)"
-                        >
+                        <img src="{{ image.image.url }}"
+                             alt="{{ product.name }}"
+                             class="thumbnail"
+                             onclick="changeImage(this)">
                     {% endfor %}
-
                 </div>
             {% endif %}
 
         </div>
+
 
         <div class="product-detail-info">
 
@@ -78,152 +68,114 @@
                 {{ product.price }} ₽
             </div>
 
+            <div class="product-rating">
+                <span>★ {{ product.rating|floatformat:1 }}/5</span>
+                <span>({{ product.rating_count }} отзывов)</span>
+            </div>
+
             <div class="product-meta">
 
                 <div class="product-meta-item">
-                    <span class="product-meta-label">
-                        Категория:
-                    </span>
-
+                    <span class="product-meta-label">Категория:</span>
                     {{ product.category.name }}
                 </div>
 
                 {% if book %}
-
                     {% if book.genres.all %}
-                    <div class="product-meta-item">
-
-                        <span class="product-meta-label">
-                            Жанры:
-                        </span>
-
-                        {% for genre in book.genres.all %}
-                            {{ genre.name }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-
-                    </div>
+                        <div class="product-meta-item">
+                            <span class="product-meta-label">Жанры:</span>
+                            {% for genre in book.genres.all %}
+                                {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
                     {% endif %}
 
                     {% if book.tags.all %}
-                    <div class="product-meta-item">
-
-                        <span class="product-meta-label">
-                            Теги:
-                        </span>
-
-                        <div class="tags">
+                        <div class="product-meta-item">
+                            <span class="product-meta-label">Теги:</span>
                             {% for tag in book.tags.all %}
-                                <span class="tag">
-                                    {{ tag.name }}
-                                </span>
+                                <span class="tag">{{ tag.name }}</span>
                             {% endfor %}
                         </div>
-
-                    </div>
                     {% endif %}
 
                     <div class="product-meta-item">
-
-                        <span class="product-meta-label">
-                            Авторы:
-                        </span>
-
+                        <span class="product-meta-label">Авторы:</span>
                         {% for author in book.authors.all %}
                             {{ author }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
-
                     </div>
 
                     <div class="product-meta-item">
-
-                        <span class="product-meta-label">
-                            Издательство:
-                        </span>
-
+                        <span class="product-meta-label">Издательство:</span>
                         {{ book.publisher.name }}
-
                     </div>
 
                     <div class="product-meta-item">
-
-                        <span class="product-meta-label">
-                            Год:
-                        </span>
-
+                        <span class="product-meta-label">Год:</span>
                         {{ book.year }}
-
                     </div>
 
                     {% if book.pages %}
-                    <div class="product-meta-item">
-
-                        <span class="product-meta-label">
-                            Страниц:
-                        </span>
-
-                        {{ book.pages }}
-
-                    </div>
+                        <div class="product-meta-item">
+                            <span class="product-meta-label">Страниц:</span>
+                            {{ book.pages }}
+                        </div>
                     {% endif %}
-
                 {% endif %}
 
                 {% if board_game %}
                     <div class="product-meta-item">
-
-                        <span class="product-meta-label">
-                            Аудитория:
-                        </span>
-
+                        <span class="product-meta-label">Аудитория:</span>
                         {{ board_game.audience }}
-
                     </div>
                 {% endif %}
+
                 {% if product.stationery %}
                     <div class="product-meta-item">
+                        <span class="product-meta-label">Поставщик:</span>
 
-                        <span class="product-meta-label">
-                            Поставщик:
-                        </span>
-
-                    {% if product.stationery.supplier %}
-                        {{ product.stationery.supplier.name }}
-                    {% else %}
-                        <span>Не указан</span>
-                    {% endif %}
+                        {% if product.stationery.supplier %}
+                            {{ product.stationery.supplier.name }}
+                        {% else %}
+                            <span>Не указан</span>
+                        {% endif %}
 
                     </div>
                 {% endif %}
 
             </div>
 
+
             <div class="detail-buttons">
 
                 <form action="{% url 'cart:cart_add' product.id %}" method="post">
-
                     {% csrf_token %}
 
                     <div class="quantity-selector">
-
-                        <label>
-                            Количество:
-                        </label>
-
-                        <input
-                            type="number"
-                            name="quantity"
-                            value="1"
-                            min="1"
-                            class="qty-input"
-                        >
-
+                        <label>Количество:</label>
+                        <input type="number" name="quantity" value="1" min="1" class="qty-input">
                     </div>
 
                     <button type="submit" class="btn">
                         В корзину
                     </button>
-
                 </form>
+
+               {% if user_review %}
+                    <div class="review-notice">
+                        <p>Вы уже оставили отзыв</p>
+
+                        <a href="{% url 'shop:edit_review' user_review.id %}" class="btn btn-outline">
+                            Редактировать отзыв
+                        </a>
+                    </div>
+
+                {% elif can_review %}
+                    <a href="{% url 'shop:add_review' product.id %}" class="btn btn-outline">
+                        Оставить отзыв
+                    </a>
+                {% endif %}
 
                 <button type="button" class="btn btn-outline">
                     В избранное
@@ -235,10 +187,10 @@
 
     </div>
 
+
     <div class="product-description">
 
         <h3>О товаре</h3>
-
         {% if product.description %}
             <p>{{ product.description }}</p>
         {% else %}
@@ -247,14 +199,37 @@
 
     </div>
 
+
+   <div class="reviews-section">
+
+        <h3>Отзывы</h3>
+
+            {% for review in product.reviews.all %}
+
+                <div class="review">
+                    <div class="review-header">
+                        <strong>{{ review.buyer.user.username }}</strong>
+                        <span>★ {{ review.rating }}/5</span>
+                    </div>
+
+                    <small>{{ review.created|date:"d.m.Y H:i" }}</small>
+                    <p>{{ review.text }}</p>
+                </div>
+
+            {% empty %}
+
+                <p>Пока отзывов нет.</p>
+
+            {% endfor %}
+
+    </div>
 </div>
 
-<script>
 
+<script>
 function changeImage(element) {
     document.getElementById('main-product-image').src = element.src;
 }
-
 </script>
 
 {% endblock %}

@@ -8,26 +8,34 @@
 {% block content %}
 
 <div class="container">
+
     <h1>Поставщики</h1>
 
     <div class="action-bar">
         <a href="{% url 'admin_panel:supplier_create' %}" class="btn">
-            ➕ Добавить поставщика
+            Добавить поставщика
         </a>
 
         <form method="get" class="search-box">
-            <input type="text" name="q" placeholder="Поиск по названию поставщика..." value="{{ search_query }}">
+            <input type="text" name="q"
+                   placeholder="Поиск по названию поставщика..."
+                   value="{{ search_query }}">
             <button type="submit">Найти</button>
+
             {% if search_query %}
-                <a href="{% url 'admin_panel:supplier_list' %}" class="clear-btn">Очистить</a>
+                <a href="{% url 'admin_panel:supplier_list' %}" class="clear-btn">
+                    Очистить
+                </a>
             {% endif %}
         </form>
     </div>
 
     <h2>Активные</h2>
     <div class="list">
+
         {% for supplier in suppliers %}
             <div class="list-item">
+
                 <div class="supplier-info">
                     <strong>{{ supplier.name }}</strong><br>
                     <small>
@@ -35,25 +43,30 @@
                         {{ supplier.email|default:"—" }}
                     </small>
                 </div>
-                <a href="{% url 'admin_panel:supplier_delete' supplier.id %}" onclick="return confirm('Отправить поставщика «{{ supplier.name }}» в архив?')">
-                    В архив
+
+                <a href="{% url 'admin_panel:supplier_delete' supplier.id %}">
+                    Удалить
                 </a>
+
             </div>
         {% empty %}
             <div class="empty-state">
                 {% if search_query %}
                     Поставщики по запросу «{{ search_query }}» не найдены
                 {% else %}
-                     Нет активных поставщиков
+                    Нет активных поставщиков
                 {% endif %}
             </div>
         {% endfor %}
+
     </div>
 
     <h2>Архив</h2>
     <div class="list">
+
         {% for supplier in archived_suppliers %}
             <div class="list-item inactive">
+
                 <div class="supplier-info">
                     <strong>{{ supplier.name }}</strong><br>
                     <small>
@@ -61,20 +74,24 @@
                         {{ supplier.email|default:"—" }}
                     </small>
                 </div>
-                <a href="{% url 'admin_panel:supplier_restore' supplier.id %}" class="restore-link" onclick="return confirm('Восстановить поставщика «{{ supplier.name }}»?')">
+
+                <a href="{% url 'admin_panel:supplier_restore' supplier.id %}">
                     Восстановить
                 </a>
+
             </div>
         {% empty %}
             <div class="empty-state">
                 Архив пуст
             </div>
         {% endfor %}
+
     </div>
 
     <a href="javascript:history.back()" class="back-link">
         ← Назад
     </a>
+
 </div>
 
 {% endblock %}
