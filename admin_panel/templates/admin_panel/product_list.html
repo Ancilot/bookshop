@@ -20,6 +20,24 @@
 
     </div>
 
+    <form method="get" class="search-form">
+        <div class="search-wrapper">
+            <input
+                type="text"
+                name="q"
+                value="{{ q }}"
+                placeholder="Поиск по названию или категории..."
+                class="search-input"
+            >
+            {% if q %}
+                <a href="{% url 'admin_panel:product_list' %}" class="clear-btn">&times;</a>
+            {% endif %}
+            <button type="submit" class="search-btn">
+             Найти
+            </button>
+        </div>
+    </form>
+
 
     <div class="section-card">
 

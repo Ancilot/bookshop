@@ -331,13 +331,26 @@ def load_category_form(request):
     return JsonResponse({'html': html})
 
 def product_list(request):
+    q = request.GET.get('q', '').strip()
 
     active_products = Product.objects.filter(available=True)
     inactive_products = Product.objects.filter(available=False)
 
+    if q:
+        active_products = active_products.filter(
+            Q(name__icontains=q) |
+            Q(category__name__icontains=q)
+        )
+
+        inactive_products = inactive_products.filter(
+            Q(name__icontains=q) |
+            Q(category__name__icontains=q)
+        )
+
     return render(request, 'admin_panel/product_list.html', {
         'active_products': active_products,
         'inactive_products': inactive_products,
+        'q': q,
     })
 
 def product_restore(request, id):
