@@ -12,93 +12,99 @@
     <link rel="stylesheet" href="{% static 'shop/css/cart.css' %}">
     <link rel="stylesheet" href="{% static 'shop/css/responsive.css' %}">
     <link rel="stylesheet" href="{% static 'shop/css/header.css' %}">
-    <link rel="stylesheet" href="{% static 'shop/css/detail.css' %}">
 
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <h1>Книжный магазин</h1>
-            </div>
-            <form class="search-form" action="{% url 'shop:search_products' %}" method="get">
-                <input type="text" name="q" placeholder="Поиск книг, игр, канцелярии..." value="{{ query|default:'' }}">
-                <button type="submit">Найти</button>
-            </form>
+
+<header class="header">
+    <div class="header-content">
+        <div class="logo">
+            <h1>Книжный магазин</h1>
         </div>
-    </header>
 
-    <nav class="nav">
-        <div class="nav-content">
-            <ul class="nav-list">
+        <form class="search-form" action="{% url 'shop:search_products' %}" method="get">
+            <input type="text" name="q" placeholder="Поиск книг, игр, канцелярии..." value="{{ query|default:'' }}">
+            <button type="submit">Найти</button>
+        </form>
+    </div>
+</header>
+
+<nav class="nav">
+    <div class="nav-content">
+        <ul class="nav-list">
+
+            <li>
+                <a href="{% url 'shop:product_list' %}">
+                    Главная
+                </a>
+            </li>
+
+            {% for cat in categories %}
                 <li>
-                    <a href="{% url 'shop:product_list' %}"
-                       class="{% if request.resolver_match.url_name == 'product_list' and not category %}active{% endif %}">
-                        Главная
+                    <a href="{{ cat.get_absolute_url }}">
+                        {{ cat.name }}
                     </a>
                 </li>
-                <li>
-                    <a href="{% url 'cart:cart_detail' %}">
-                        Корзина ({{ cart_item_count }})
-                    </a>
-                </li>
+            {% endfor %}
 
-                {% for cat in categories %}
+            {% if user.is_authenticated %}
+
+                {% if user.is_staff %}
                     <li>
-                        <a href="{{ cat.get_absolute_url }}"
-                           class="{% if category and category.id == cat.id %}active{% endif %}">
-                            {{ cat.name }}
+                        <a href="{% url 'admin_panel:dashboard' %}">
+                            Админ панель
                         </a>
                     </li>
-                {% endfor %}
-
-               {% if user.is_authenticated %}
-
-                    {% if user.is_staff %}
-                        <li>
-                            <a href="{% url 'admin_panel:dashboard' %}">
-                                Админ панель
-                            </a>
-                        </li>
-                    {% else %}
-                        <li>
-                            <a href="{% url 'account:dashboard' %}">
-                                Личный кабинет
-                            </a>
-                        </li>
-
-                        <li>
-                            <a href="{% url 'cart:cart_detail' %}">
-                                Корзина ({{ cart_item_count }})
-                            </a>
-                        </li>
-                    {% endif %}
-
-                    <li>
-                        <a href="{% url 'account:logout' %}">
-                            Выйти
-                        </a>
-                    </li>
-
                 {% else %}
 
-                    <li><a href="{% url 'account:login' %}">Войти</a></li>
-                    <li><a href="{% url 'account:register' %}">Регистрация</a></li>
+                    <li>
+                        <a href="{% url 'account:dashboard' %}">
+                            Личный кабинет
+                        </a>
+                    </li>
+
+                    <li class="cart-item">
+                        <a href="{% url 'cart:cart_detail' %}">
+                            Корзина ({{ cart_item_count }})
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{% url 'orders:order_history' %}">
+                            История покупок
+                        </a>
+                    </li>
 
                 {% endif %}
-            </ul>
-        </div>
-    </nav>
 
-    <main class="container">
-        {% block content %}{% endblock %}
-    </main>
+                <li>
+                    <a href="{% url 'account:logout' %}">
+                        Выйти
+                    </a>
+                </li>
 
-    <footer class="footer">
-        <p>&copy; 2026 Книжный магазин. Все права защищены.</p>
-    </footer>
+            {% else %}
 
-    {% block extra_js %}{% endblock %}
+                <li><a href="{% url 'account:login' %}">Войти</a></li>
+                <li><a href="{% url 'account:register' %}">Регистрация</a></li>
+
+            {% endif %}
+
+        </ul>
+    </div>
+</nav>
+
+<main class="container">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+    <p>&copy; 2026 Книжный магазин. Все права защищены.</p>
+</footer>
+
+{% block extra_js %}{% endblock %}
+
 </body>
 </html>

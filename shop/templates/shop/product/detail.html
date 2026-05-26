@@ -5,22 +5,18 @@
     {{ product.name }} - Книжный магазин
 {% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'shop/css/detail.css' %}">
+{% endblock %}
+
 {% block content %}
 
 <div class="breadcrumbs">
 
-    <a href="{% url 'shop:product_list' %}">
-        Главная
-    </a>
-
+    <a href="{% url 'shop:product_list' %}">Главная</a>
     /
-
-    <a href="{{ product.category.get_absolute_url }}">
-        {{ product.category.name }}
-    </a>
-
+    <a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a>
     /
-
     {{ product.name }}
 
 </div>
@@ -147,40 +143,58 @@
             </div>
 
 
+            <!-- ✅ ПРАВИЛЬНАЯ ФОРМА КОРЗИНЫ -->
             <div class="detail-buttons">
+            {% if user.is_authenticated and not user.is_staff %}
+                {% if product.available %}
 
-                <form action="{% url 'cart:cart_add' product.id %}" method="post">
-                    {% csrf_token %}
+                    <form action="{% url 'cart:cart_add' product.id %}" method="post">
+                        {% csrf_token %}
 
-                    <div class="quantity-selector">
-                        <label>Количество:</label>
-                        <input type="number" name="quantity" value="1" min="1" class="qty-input">
-                    </div>
+                        <div class="quantity-selector">
+                            <label>Количество:</label>
+                            <input type="number"
+                                   name="quantity"
+                                   value="1"
+                                   min="1"
+                                   class="qty-input">
+                        </div>
 
-                    <button type="submit" class="btn">
-                        В корзину
-                    </button>
-                </form>
+                        <button type="submit">
+                            Добавить в корзину
+                        </button>
 
-               {% if user_review %}
+                    </form>
+
+                {% else %}
+
+                    <p style="color:red;">
+                        Нет в продаже
+                    </p>
+
+                {% endif %}
+
+
+                {% if user_review %}
                     <div class="review-notice">
                         <p>Вы уже оставили отзыв</p>
 
-                        <a href="{% url 'shop:edit_review' user_review.id %}" class="btn btn-outline">
+                        <a href="{% url 'shop:edit_review' user_review.id %}">
                             Редактировать отзыв
                         </a>
                     </div>
 
                 {% elif can_review %}
-                    <a href="{% url 'shop:add_review' product.id %}" class="btn btn-outline">
+                    <a href="{% url 'shop:add_review' product.id %}">
                         Оставить отзыв
                     </a>
                 {% endif %}
 
-                <button type="button" class="btn btn-outline">
+                <button type="button">
                     В избранное
                 </button>
 
+            {% endif %}
             </div>
 
         </div>
@@ -191,6 +205,7 @@
     <div class="product-description">
 
         <h3>О товаре</h3>
+
         {% if product.description %}
             <p>{{ product.description }}</p>
         {% else %}
@@ -200,29 +215,32 @@
     </div>
 
 
-   <div class="reviews-section">
+    <div class="reviews-section">
 
         <h3>Отзывы</h3>
 
-            {% for review in product.reviews.all %}
+        {% for review in product.reviews.all %}
 
-                <div class="review">
-                    <div class="review-header">
-                        <strong>{{ review.buyer.user.username }}</strong>
-                        <span>★ {{ review.rating }}/5</span>
-                    </div>
+            <div class="review">
 
-                    <small>{{ review.created|date:"d.m.Y H:i" }}</small>
-                    <p>{{ review.text }}</p>
+                <div class="review-header">
+                    <strong>{{ review.buyer.user.username }}</strong>
+                    <span>★ {{ review.rating }}/5</span>
                 </div>
 
-            {% empty %}
+                <small>{{ review.created|date:"d.m.Y H:i" }}</small>
+                <p>{{ review.text }}</p>
 
-                <p>Пока отзывов нет.</p>
+            </div>
 
-            {% endfor %}
+        {% empty %}
+
+            <p>Пока отзывов нет.</p>
+
+        {% endfor %}
 
     </div>
+
 </div>
 
 

@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from shop.models import Product
+from django.http import HttpResponseForbidden
 from account.models import Cart
 from account.models import Buyer
 
@@ -8,6 +9,8 @@ from account.models import Buyer
 def cart_add(request, product_id):
 
     product = get_object_or_404(Product, id=product_id)
+    if not product.available:
+        return HttpResponseForbidden("Товар недоступен для покупки")
 
     quantity = int(request.POST.get('quantity', 1))
 

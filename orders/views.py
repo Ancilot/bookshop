@@ -5,6 +5,17 @@ from account.models import Cart
 from .models import Order, OrderItem
 from .forms import OrderCreateForm
 
+@login_required
+def order_history(request):
+    orders = (
+        Order.objects
+        .filter(buyer=request.user.buyer)
+        .prefetch_related('items__product')
+    )
+
+    return render(request, 'orders/order/history.html', {
+        'orders': orders
+    })
 
 @login_required
 def order_create(request):

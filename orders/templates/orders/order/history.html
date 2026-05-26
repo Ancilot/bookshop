@@ -1,0 +1,95 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}История покупок{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'shop/css/orders.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="orders-page">
+
+    <h1 class="orders-title">История покупок</h1>
+
+    {% for order in orders %}
+
+        <div class="order-card">
+
+            <div class="order-header">
+
+                <div>
+                    <h3>Заказ #{{ order.id }}</h3>
+                    <span class="order-date">
+                        {{ order.created|date:"d.m.Y H:i" }}
+                    </span>
+                </div>
+
+                <div class="order-status">
+                    {{ order.get_status_display }}
+                </div>
+
+            </div>
+
+            <div class="order-items">
+
+                {% for item in order.items.all %}
+
+                    <div class="order-item">
+
+                        <div class="item-image">
+
+                            {% with img=item.product.get_main_image %}
+
+                                {% if img %}
+                                    <img src="{{ img.image.url }}" alt="{{ item.product.name }}">
+                                {% else %}
+                                    <img src="/static/shop/img/no-image.png" alt="Нет изображения">
+                                {% endif %}
+
+                            {% endwith %}
+
+                        </div>
+
+                        <div class="item-info">
+
+                            <a href="{{ item.product.get_absolute_url }}" class="item-name">
+                                {{ item.product.name }}
+                            </a>
+
+                            <div class="item-meta">
+                                <span>Цена: <b>{{ item.price }} ₽</b></span>
+                                <span>Кол-во: <b>{{ item.quantity }}</b></span>
+                            </div>
+
+                        </div>
+
+                        <div class="item-total">
+                            {{ item.total_price }} ₽
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+            <div class="order-footer">
+                <span>Итого:</span>
+                <strong>{{ order.total_price }} ₽</strong>
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        <div class="empty-orders">
+            <p>У вас пока нет заказов</p>
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

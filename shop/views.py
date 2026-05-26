@@ -42,12 +42,7 @@ def search_products(request):
 
 def product_detail(request, id, slug):
 
-    product = get_object_or_404(
-        Product,
-        id=id,
-        slug=slug,
-        available=True
-    )
+    product = get_object_or_404(Product, id=id, slug=slug)
 
     book = getattr(product, 'book', None)
     board_game = getattr(product, 'board_game', None)
@@ -126,7 +121,6 @@ def add_review(request, product_id):
     if not buyer:
         return redirect('account:login')
 
-    # уже есть отзыв?
     review = Review.objects.filter(product=product, buyer=buyer).first()
 
     if request.method == 'POST':
