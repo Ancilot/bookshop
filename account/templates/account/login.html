@@ -6,12 +6,10 @@
 <div class="auth-container">
     <h1>Вход</h1>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
+    {% if error %}
+        <div class="alert-error">
+            {{ error }}
+        </div>
     {% endif %}
 
     <form method="post">

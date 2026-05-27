@@ -15,12 +15,16 @@
 
         <h1>Редактирование профиля</h1>
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="message {{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
+       {% if success %}
+            <div class="success-badge">
+                {{ success }}
+            </div>
+        {% endif %}
+
+        {% if error %}
+            <div class="error-badge">
+                {{ error }}
+            </div>
         {% endif %}
 
         <form method="post" enctype="multipart/form-data">
@@ -29,17 +33,45 @@
 
             <div class="form-section">
                 <h2>Основная информация</h2>
-                {{ user_form.as_p }}
+
+                {% for field in user_form %}
+                    <p>
+                        {{ field.label_tag }}
+                        {{ field }}
+
+                        {% if field.errors %}
+                            <div class="field-error">
+                                {{ field.errors|striptags }}
+                            </div>
+                        {% endif %}
+                    </p>
+                {% endfor %}
             </div>
 
             <div class="form-section">
                 <h2>Дополнительная информация</h2>
-                {{ buyer_form.as_p }}
+
+                {% for field in buyer_form %}
+                    <p>
+                        {{ field.label_tag }}
+                        {{ field }}
+
+                        {% if field.errors %}
+                            <div class="field-error">
+                                {{ field.errors|striptags }}
+                            </div>
+                        {% endif %}
+                    </p>
+                {% endfor %}
             </div>
 
             <button type="submit" class="save-btn">
                 Сохранить изменения
             </button>
+
+            <a href="{% url 'account:dashboard' %}" class="back-btn">
+                Вернуться в профиль
+            </a>
 
         </form>
 

@@ -10,6 +10,8 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.contrib.auth.forms import AuthenticationForm
+from django import forms
+from django.contrib.auth.models import User
 
 
 def user_logout(request):
@@ -17,6 +19,8 @@ def user_logout(request):
     return redirect('account:login')
 
 def user_login(request):
+    error = None
+
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
 
@@ -24,20 +28,18 @@ def user_login(request):
             user = form.get_user()
             login(request, user)
 
-            messages.success(request, f'Добро пожаловать, {user.username}!')
             return redirect('account:dashboard')
 
         else:
-            messages.error(request, 'Неверный логин или пароль')
+            error = 'Неверный логин или пароль'
 
     else:
         form = AuthenticationForm()
 
     return render(request, 'account/login.html', {
-        'form': form
+        'form': form,
+        'error': error,
     })
-
-    return render(request, 'account/login.html')
 
 def register(request):
     if request.method == 'POST':
@@ -77,13 +79,38 @@ def dashboard(request):
         'wishlist_items': wishlist_items,
     })
 
+class UserEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get('first_name')
+
+        if not first_name:
+            raise forms.ValidationError("Имя обязательно")
+
+        return first_name
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+
+        if not email:
+            raise forms.ValidationError("Email обязателен")
+
+        if User.objects.exclude(pk=self.instance.pk).filter(email=email).exists():
+            raise forms.ValidationError("Этот email уже используется")
+
+        return email
 
 @login_required
 def edit(request):
+    buyer, created = Buyer.objects.get_or_create(user=request.user)
+
+    success = None
+
     if request.method == 'POST':
         user_form = UserEditForm(instance=request.user, data=request.POST)
-
-        buyer, created = Buyer.objects.get_or_create(user=request.user)
         buyer_form = BuyerProfileForm(
             instance=buyer,
             data=request.POST,
@@ -93,17 +120,13 @@ def edit(request):
         if user_form.is_valid() and buyer_form.is_valid():
             user_form.save()
             buyer_form.save()
-            messages.success(request, 'Профиль успешно обновлен')
-            return redirect('account:dashboard')
-        else:
-            messages.error(request, 'Ошибка обновления профиля')
-
+            success = "Профиль успешно обновлен"
     else:
         user_form = UserEditForm(instance=request.user)
-        buyer, created = Buyer.objects.get_or_create(user=request.user)
         buyer_form = BuyerProfileForm(instance=buyer)
 
     return render(request, 'account/edit.html', {
         'user_form': user_form,
-        'buyer_form': buyer_form
+        'buyer_form': buyer_form,
+        'success': success,
     })

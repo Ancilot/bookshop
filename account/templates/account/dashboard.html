@@ -23,6 +23,9 @@
                 {{ request.user.first_name }}
                 {{ request.user.last_name }}
             </h1>
+            <div class="alert-success">
+                Добро пожаловать, {{ request.user.username }}!
+            </div>
 
             {% if request.user.buyer.middle_name %}
                 <p>

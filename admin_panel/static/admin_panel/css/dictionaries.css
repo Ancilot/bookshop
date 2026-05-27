@@ -127,3 +127,15 @@
 .back-link:hover {
     text-decoration: underline;
 }
+.alert-success {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.08);
+    backdrop-filter: blur(4px);
+}

@@ -131,8 +131,16 @@ def genre_delete(request, id):
     genre = get_object_or_404(Genre, id=id)
 
     if genre.book_set.exists():
-        messages.error(request, "Нельзя удалить — используется в книгах")
-        return redirect('admin_panel:genre_list')
+        genres = Genre.objects.all()
+
+        return render(
+            request,
+            'admin_panel/dictionaries/genres/genres.html',
+            {
+                'genres': genres,
+                'error': 'Нельзя удалить — используется в книгах'
+            }
+        )
 
     genre.delete()
     return redirect('admin_panel:genre_list')
@@ -166,8 +174,16 @@ def author_delete(request, id):
     author = get_object_or_404(Author, id=id)
 
     if author.book_set.exists():
-        messages.error(request, "Нельзя удалить — автор используется в книгах")
-        return redirect('admin_panel:author_list')
+        authors = Author.objects.all()
+
+        return render(
+            request,
+            'admin_panel/dictionaries/authors/authors.html',
+            {
+                'authors': authors,
+                'error': 'Нельзя удалить — автор используется в книгах'
+            }
+        )
 
     author.delete()
     return redirect('admin_panel:author_list')
@@ -197,8 +213,16 @@ def tag_delete(request, id):
     tag = get_object_or_404(Tag, id=id)
 
     if Book.objects.filter(tags=tag).exists():
-        messages.error(request, "Нельзя удалить — тег используется в книгах")
-        return redirect('admin_panel:tag_list')
+        tags = Tag.objects.all()
+
+        return render(
+            request,
+            'admin_panel/dictionaries/tags/tags.html',
+            {
+                'tags': tags,
+                'error': 'Нельзя удалить — тег используется в книгах'
+            }
+        )
 
     tag.delete()
     return redirect('admin_panel:tag_list')

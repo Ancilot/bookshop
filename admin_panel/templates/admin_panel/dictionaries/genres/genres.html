@@ -24,6 +24,12 @@
         </form>
     </div>
 
+    {% if error %}
+        <div class="alert-error">
+            {{ error }}
+        </div>
+    {% endif %}
+
     <div class="list">
         {% for genre in genres %}
             <div class="list-item">

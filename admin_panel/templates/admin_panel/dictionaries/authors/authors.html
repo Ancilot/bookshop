@@ -23,6 +23,11 @@
             {% endif %}
         </form>
     </div>
+    {% if error %}
+        <div class="alert-error">
+            {{ error }}
+        </div>
+    {% endif %}
 
     <div class="list">
         {% for author in authors %}
