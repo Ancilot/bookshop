@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from .forms import UserRegistrationForm, UserEditForm, BuyerProfileForm
+from .forms import UserRegistrationForm, UserEditForm, BuyerProfileForm, LoginForm
 from .models import Buyer
 
 from django.contrib.auth import authenticate, login
@@ -21,8 +21,33 @@ from django.contrib.auth import update_session_auth_hash
 from .forms import PasswordChangeRequestForm, CodeForm
 
 from time import time
+from django.shortcuts import get_object_or_404
+from shop.models import Product
+from .models import Wishlist
 
+@login_required
+def wishlist(request):
+    if request.user.is_staff:
+        return redirect('admin:index')
 
+    items = request.user.buyer.wishlist.select_related('product')
+    return render(request, 'account/wishlist.html', {'items': items})
+@login_required
+def toggle_wishlist(request, product_id):
+    if request.user.is_staff:
+        return redirect('shop:product_detail', product_id)
+
+    buyer = request.user.buyer
+    product = get_object_or_404(Product, id=product_id)
+
+    item = Wishlist.objects.filter(buyer=buyer, product=product)
+
+    if item.exists():
+        item.delete()
+    else:
+        Wishlist.objects.create(buyer=buyer, product=product)
+
+    return redirect(request.META.get('HTTP_REFERER', 'shop:product_list'))
 @login_required
 def password_change_request(request):
     error = None
@@ -244,10 +269,8 @@ def user_logout(request):
     return redirect('account:login')
 
 def user_login(request):
-    error = None
-
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
+        form = LoginForm(request, data=request.POST)
 
         if form.is_valid():
             user = form.get_user()
@@ -258,17 +281,12 @@ def user_login(request):
 
             return redirect('account:dashboard')
 
-        else:
-            error = 'Неверный логин или пароль'
-
     else:
-        form = AuthenticationForm()
+        form = LoginForm(request)
 
     return render(request, 'account/login.html', {
         'form': form,
-        'error': error,
     })
-
 def register(request):
     if request.method == 'POST':
 

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import Buyer
 
 class PasswordChangeRequestForm(forms.Form):
@@ -18,6 +18,10 @@ class PasswordChangeRequestForm(forms.Form):
             raise forms.ValidationError("Пароли не совпадают")
 
         return cleaned_data
+
+class LoginForm(AuthenticationForm):
+    username = forms.CharField(label='Логин')
+    password = forms.CharField(label='Пароль', widget=forms.PasswordInput)
 
 class EmailChangeForm(forms.Form):
     new_email = forms.EmailField(label='Новый email')
@@ -47,6 +51,16 @@ class UserRegistrationForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'first_name', 'email']
+
+        labels = {
+            'username': 'Логин',
+            'first_name': 'Имя',
+            'email': 'Email',
+        }
+
+        help_texts = {
+            'username': '',  # убираем английскую подсказку Django
+        }
 
     def clean_password2(self):
         cd = self.cleaned_data

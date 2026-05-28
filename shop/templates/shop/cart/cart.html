@@ -15,7 +15,7 @@
                         {% if img %}
                             <img src="{{ img.image.url }}" alt="{{ item.product.name }}">
                         {% else %}
-                            <img src="{% static 'shop/img/no-image.png' %}">
+                            <div class="img-placeholder"></div>
                         {% endif %}
                     {% endwith %}
                 </div>

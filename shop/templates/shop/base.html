@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{% static 'shop/css/cart.css' %}">
     <link rel="stylesheet" href="{% static 'shop/css/responsive.css' %}">
     <link rel="stylesheet" href="{% static 'shop/css/header.css' %}">
+    <link rel="stylesheet" href="{% static 'shop/css/wishlist.css' %}">
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -74,6 +75,11 @@
                     <li>
                         <a href="{% url 'orders:order_history' %}">
                             История покупок
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'account:wishlist_list' %}">
+                            Избранное
                         </a>
                     </li>
 

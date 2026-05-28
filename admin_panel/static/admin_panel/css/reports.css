@@ -1,6 +1,4 @@
-/* admin_panel/css/reports.css */
 
-/* Общие стили */
 :root {
     --primary: #4361ee;
     --primary-dark: #3a56d4;
@@ -41,14 +39,12 @@ body {
     line-height: 1.5;
 }
 
-/* Контейнер */
 .reports-container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 32px 24px;
 }
 
-/* Заголовок */
 .page-header {
     margin-bottom: 32px;
 }
@@ -68,7 +64,6 @@ body {
     font-size: 14px;
 }
 
-/* Панель управления */
 .control-panel {
     background: var(--white);
     border-radius: var(--border-radius);
@@ -152,7 +147,6 @@ body {
     color: white;
 }
 
-/* Секции отчетов */
 .report-section {
     background: var(--white);
     border-radius: var(--border-radius);
@@ -184,7 +178,6 @@ body {
     color: var(--gray-600);
 }
 
-/* Двойная колонка */
 .two-columns {
     display: flex;
     gap: 24px;
@@ -206,7 +199,6 @@ body {
     align-items: center;
     gap: 8px;
 }
-/* Список элементов */
 .item-list {
     list-style: none;
 }

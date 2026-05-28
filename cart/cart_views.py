@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from shop.models import Product
 from account.models import Cart
 from django.contrib.auth.decorators import login_required

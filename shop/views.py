@@ -27,7 +27,6 @@ def product_list(request, category_slug=None):
             category=category
         )
 
-    # ===== ФИЛЬТР ПО ЖАНРУ =====
 
     genre_id = request.GET.get('genre')
 
@@ -51,7 +50,6 @@ def product_list(request, category_slug=None):
                 Q(board_game__genres__id=genre_id)
             )
 
-    # ===== ФИЛЬТР ПО ТЕГУ =====
 
     tag_id = request.GET.get('tag')
 
@@ -62,7 +60,6 @@ def product_list(request, category_slug=None):
 
     products = products.distinct()
 
-    # ===== СОРТИРОВКА =====
 
     sort = request.GET.get('sort')
 
@@ -87,7 +84,6 @@ def product_list(request, category_slug=None):
     else:
         products = products.order_by('name')
 
-    # ===== ДАННЫЕ ДЛЯ ФИЛЬТРОВ =====
 
     genres = Genre.objects.none()
     tags = Tag.objects.none()
@@ -149,6 +145,14 @@ def product_detail(request, id, slug):
     can_review = False
     user_review = None
 
+    wishlist_ids = []
+
+    if request.user.is_authenticated and not request.user.is_superuser:
+        wishlist_ids = request.user.buyer.wishlist.values_list(
+            'product_id',
+            flat=True
+        )
+
     if request.user.is_authenticated:
         buyer = getattr(request.user, 'buyer', None)
 
@@ -177,6 +181,7 @@ def product_detail(request, id, slug):
         'stationery': stationery,
         'can_review': can_review,
         'user_review': user_review,
+        'wishlist_ids': wishlist_ids,
     })
 
 def edit_review(request, review_id):

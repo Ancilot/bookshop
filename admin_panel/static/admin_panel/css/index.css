@@ -1,4 +1,4 @@
-/* Базовые переменные */
+
 :root {
     --primary: #4361ee;
     --primary-dark: #3a56d4;
@@ -16,7 +16,6 @@
     --radius-sm: 8px;
 }
 
-/* Общие стили */
 * {
     margin: 0;
     padding: 0;
@@ -30,14 +29,12 @@ body {
     line-height: 1.5;
 }
 
-/* Контейнер */
 .container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
 }
 
-/* Заголовки */
 h1 {
     font-size: 2rem;
     font-weight: 700;
@@ -55,7 +52,6 @@ h2 {
     border-bottom: 2px solid var(--border);
 }
 
-/* Сетка для главной страницы */
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -63,7 +59,6 @@ h2 {
     margin-top: 1rem;
 }
 
-/* Карточки */
 .card {
     background: white;
     border-radius: var(--radius);
@@ -102,7 +97,6 @@ h2 {
     transform: scaleX(1);
 }
 
-/* Кнопки */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -144,7 +138,6 @@ h2 {
     background: var(--secondary);
 }
 
-/* Панель действий */
 .action-bar {
     display: flex;
     justify-content: space-between;
@@ -154,7 +147,6 @@ h2 {
     gap: 1rem;
 }
 
-/* Поиск */
 .search-box {
     display: flex;
     gap: 0.5rem;
@@ -196,7 +188,6 @@ h2 {
     gap: 0.25rem;
 }
 
-/* Список элементов */
 .list {
     background: white;
     border-radius: var(--radius);

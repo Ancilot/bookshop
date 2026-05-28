@@ -1,4 +1,4 @@
-/* RESET */
+
 * {
     margin: 0;
     padding: 0;
@@ -170,7 +170,6 @@ body {
     font-size: 12px;
 }
 
-/* EMPTY */
 .empty-state {
     padding: 40px;
     text-align: center;
@@ -178,7 +177,6 @@ body {
     font-size: 14px;
 }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);

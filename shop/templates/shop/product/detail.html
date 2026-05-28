@@ -35,7 +35,7 @@
                     {% if main_image %}
                         <img src="{{ main_image.image.url }}" alt="{{ product.name }}" id="main-product-image">
                     {% else %}
-                        <img src="{% static 'shop/img/no-image.png' %}" alt="Нет изображения" id="main-product-image">
+                        <div class="img-placeholder"></div>
                     {% endif %}
 
                 {% endwith %}
@@ -143,7 +143,7 @@
             </div>
 
 
-            <!-- ✅ ПРАВИЛЬНАЯ ФОРМА КОРЗИНЫ -->
+
             <div class="detail-buttons">
             {% if user.is_authenticated and not user.is_staff %}
                 {% if product.available %}
@@ -174,25 +174,32 @@
 
                 {% endif %}
 
+                 {% if user.is_authenticated and not user.is_superuser %}
+                    <a href="{% url 'account:wishlist_toggle' product.id %}" class="btn btn-wishlist">
+                        {% if product.id in wishlist_ids %}
+                            Убрать из избранного
+                        {% else %}
+                            В избранное
+                        {% endif %}
+                    </a>
+                {% endif %}
 
                 {% if user_review %}
                     <div class="review-notice">
                         <p>Вы уже оставили отзыв</p>
 
-                        <a href="{% url 'shop:edit_review' user_review.id %}">
+                        <a href="{% url 'shop:edit_review' user_review.id %}" class="btn btn-secondary">
                             Редактировать отзыв
                         </a>
                     </div>
 
                 {% elif can_review %}
-                    <a href="{% url 'shop:add_review' product.id %}">
+                    <a href="{% url 'shop:add_review' product.id %}" class="btn btn-primary">
                         Оставить отзыв
                     </a>
                 {% endif %}
 
-                <button type="button">
-                    В избранное
-                </button>
+
 
             {% endif %}
             </div>

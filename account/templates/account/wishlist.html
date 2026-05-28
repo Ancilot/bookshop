@@ -1,0 +1,60 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Избранное{% endblock %}
+
+{% block content %}
+
+<div class="wishlist-container">
+
+    <h1 class="wishlist-title">Избранное</h1>
+
+    {% if items %}
+        <div class="wishlist-grid">
+
+            {% for item in items %}
+                <div class="wishlist-card">
+
+                    <a href="{{ item.product.get_absolute_url }}" class="wishlist-link">
+
+                        <div class="wishlist-image">
+
+                            {% with img=item.product.get_main_image %}
+                                {% if img %}
+                                    <img src="{{ img.image.url }}" alt="{{ item.product.name }}">
+                                {% else %}
+                                    <div class="img-placeholder"></div>
+                                {% endif %}
+                            {% endwith %}
+
+                        </div>
+
+                        <div class="wishlist-info">
+                            <h3>{{ item.product.name }}</h3>
+                            <p class="wishlist-price">{{ item.product.price }} ₽</p>
+                        </div>
+
+                    </a>
+
+                    <a href="{% url 'account:wishlist_toggle' item.product.id %}"
+                       class="wishlist-remove">
+                        ✕ Удалить
+                    </a>
+
+                </div>
+            {% endfor %}
+
+        </div>
+    {% else %}
+        <div class="wishlist-empty">
+            <h2>Список пуст</h2>
+            <p>Добавьте товары в избранное, чтобы они здесь появились.</p>
+            <a href="{% url 'shop:product_list' %}" class="wishlist-btn">
+                Перейти к товарам
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

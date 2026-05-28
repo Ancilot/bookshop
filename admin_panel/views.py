@@ -546,7 +546,6 @@ def product_update(request, id):
                     except ValueError:
                         pass
 
-                # НОВАЯ ЛОГИКА (temp_id вместо new_индексов)
                 elif main_image.startswith('temp_'):
                     temp_id = main_image.replace('temp_', '')
 

@@ -27,5 +27,7 @@ urlpatterns = [
     path('set-new-password/', views.set_new_password, name='set_new_password'),
     path('confirm-email-change/', views.confirm_email_change, name='confirm_email_change'),
     path('change-email/', views.change_email, name='change_email'),
+    path('wishlist/toggle/<int:product_id>/', views.toggle_wishlist, name='wishlist_toggle'),
+    path('wishlist/', views.wishlist, name='wishlist_list'),
 
 ]

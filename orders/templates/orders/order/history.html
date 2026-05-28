@@ -45,7 +45,7 @@
                                 {% if img %}
                                     <img src="{{ img.image.url }}" alt="{{ item.product.name }}">
                                 {% else %}
-                                    <img src="/static/shop/img/no-image.png" alt="Нет изображения">
+                                    <div class="img-placeholder"></div>
                                 {% endif %}
 
                             {% endwith %}
