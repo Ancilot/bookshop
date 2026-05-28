@@ -18,7 +18,6 @@ urlpatterns = [
 
     # экспорт
     path('reports/excel/', views.export_excel, name='export_excel'),
-    path('reports/pdf/', views.export_pdf, name='export_pdf'),
     path('ajax/load-category-form/',views.load_category_form,name='load_category_form'),
 
     # Справочники

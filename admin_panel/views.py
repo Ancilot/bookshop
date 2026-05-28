@@ -1,3 +1,5 @@
+from django.db.models.functions import Coalesce
+
 from .forms import PriceForm, AuthorForm, TagForm
 from django.contrib.auth.decorators import (
     login_required
@@ -18,6 +20,10 @@ from orders.models import (
     Order,
     OrderItem
 )
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Count
+from django.db.models import Sum
 
 from shop.models import (
     Product,
@@ -49,6 +55,34 @@ from django.contrib import messages
 
 from shop.models import Supplier
 from .forms import SupplierForm
+
+from django.db.models import Sum, Count, Q
+from django.utils import timezone
+from datetime import timedelta
+
+def get_period(period):
+    now = timezone.now()
+
+    if period == 'day':
+        return now - timedelta(days=1)
+    if period == 'week':
+        return now - timedelta(days=7)
+    if period == 'month':
+        return now - timedelta(days=30)
+    if period == 'year':
+        return now - timedelta(days=365)
+
+    return now - timedelta(days=30)
+
+def get_sales_by_period(days):
+    since = timezone.now() - timedelta(days=days)
+
+    return OrderItem.objects.filter(
+        order__created__gte=since
+    ).aggregate(
+        total=Sum('quantity')
+    )['total'] or 0
+
 
 def supplier_list(request):
     q = request.GET.get('q')
@@ -548,197 +582,592 @@ def product_delete(request, id):
 
 
 @admin_required
-def export_pdf(request):
+def export_excel(request):
 
-    response = HttpResponse(
-        content_type='application/pdf'
-    )
+    period = request.GET.get('period', 'month')
+    since = get_period(period)
 
-    response[
-        'Content-Disposition'
-    ] = 'attachment; filename=report.pdf'
+    orders = Order.objects.filter(created__gte=since)
 
-    p = canvas.Canvas(response)
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Отчет'
 
-    y = 800
+    ws.append(['Товар', 'Количество'])
 
-    p.drawString(
-        100,
-        y,
-        'Отчет по продажам'
-    )
-
-    y -= 40
-
-    products = (
+    items = (
         OrderItem.objects
+        .filter(order__in=orders)
         .values('product__name')
         .annotate(total=Sum('quantity'))
         .order_by('-total')
     )
 
-    for item in products:
+    for i in items:
+        ws.append([i['product__name'], i['total']])
 
-        text = (
-            f"{item['product__name']} - "
-            f"{item['total']} шт"
-        )
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
 
-        p.drawString(100, y, text)
+    response['Content-Disposition'] = f'attachment; filename=report_{period}.xlsx'
 
-        y -= 25
-
-    p.showPage()
-
-    p.save()
-
+    wb.save(response)
     return response
 
 
 @admin_required
 def export_excel(request):
+    period = request.GET.get('period', 'month')
+    since = get_period(period)
+
+    orders = Order.objects.filter(created__gte=since)
+
+    items = OrderItem.objects.filter(
+        order__in=orders
+    ).select_related('product')
 
     wb = Workbook()
+    wb.remove(wb.active)
 
-    ws = wb.active
+    def write_table(ws, headers, rows):
+        ws.append(headers)
 
-    ws.title = 'Отчет'
+        for row in rows:
+            ws.append(row)
 
-    ws.append([
-        'Товар',
-        'Количество продаж'
-    ])
+    def split_popular(qs):
+        items_list = list(qs)
 
-    products = (
-        OrderItem.objects
-        .values('product__name')
-        .annotate(total=Sum('quantity'))
+        avg = (
+            sum(i.total for i in items_list) / len(items_list)
+            if items_list else 0
+        )
+
+        popular = [i for i in items_list if i.total > avg]
+        unpopular = [i for i in items_list if i.total <= avg]
+
+        return popular, unpopular
+
+
+    ws = wb.create_sheet("Рейтинг товаров")
+
+    products_rating = Product.objects.order_by(
+        '-rating',
+        '-rating_count'
+    )
+
+    write_table(
+        ws,
+        ['Товар', 'Рейтинг', 'Отзывов'],
+        [
+            [p.name, p.rating, p.rating_count]
+            for p in products_rating
+        ]
+    )
+
+    ws = wb.create_sheet("Проданные товары")
+
+    sold_products = (
+        items.values('product__name')
+        .annotate(total=Coalesce(Sum('quantity'), 0))
         .order_by('-total')
     )
 
-    for item in products:
+    write_table(
+        ws,
+        ['Товар', 'Продано'],
+        [
+            [i['product__name'], i['total']]
+            for i in sold_products
+        ]
+    )
 
-        ws.append([
-            item['product__name'],
-            item['total']
-        ])
+    books = Book.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'product__orderitem__quantity',
+                filter=Q(product__orderitem__order__in=orders)
+            ),
+            0
+        )
+    )
+
+    popular_books, unpopular_books = split_popular(books)
+
+    ws = wb.create_sheet("Популярные книги")
+
+    write_table(
+        ws,
+        ['Книга', 'Продано'],
+        [
+            [b.product.name, b.total]
+            for b in popular_books
+        ]
+    )
+
+    ws = wb.create_sheet("Непопулярные книги")
+
+    write_table(
+        ws,
+        ['Книга', 'Продано'],
+        [
+            [b.product.name, b.total]
+            for b in unpopular_books
+        ]
+    )
+
+    games = BoardGame.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'product__orderitem__quantity',
+                filter=Q(product__orderitem__order__in=orders)
+            ),
+            0
+        )
+    )
+
+    popular_games, unpopular_games = split_popular(games)
+
+    ws = wb.create_sheet("Популярные игры")
+
+    write_table(
+        ws,
+        ['Игра', 'Продано'],
+        [
+            [g.product.name, g.total]
+            for g in popular_games
+        ]
+    )
+
+    ws = wb.create_sheet("Непопулярные игры")
+
+    write_table(
+        ws,
+        ['Игра', 'Продано'],
+        [
+            [g.product.name, g.total]
+            for g in unpopular_games
+        ]
+    )
+
+    stationery = Stationery.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'product__orderitem__quantity',
+                filter=Q(product__orderitem__order__in=orders)
+            ),
+            0
+        )
+    )
+
+    popular_stationery, unpopular_stationery = split_popular(
+        stationery
+    )
+
+    ws = wb.create_sheet("Популярная концелярия")
+
+    write_table(
+        ws,
+        ['Товар', 'Продано'],
+        [
+            [s.product.name, s.total]
+            for s in popular_stationery
+        ]
+    )
+
+    ws = wb.create_sheet("Непопулярная концелярия")
+
+    write_table(
+        ws,
+        ['Товар', 'Продано'],
+        [
+            [s.product.name, s.total]
+            for s in unpopular_stationery
+        ]
+    )
+
+    authors = Author.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'book__product__orderitem__quantity',
+                filter=Q(book__product__orderitem__order__in=orders)
+            ),
+            0
+        )
+    )
+
+    popular_authors, unpopular_authors = split_popular(authors)
+
+    ws = wb.create_sheet("Популярные авторы")
+
+    write_table(
+        ws,
+        ['Автор', 'Продано'],
+        [
+            [str(a), a.total]
+            for a in popular_authors
+        ]
+    )
+
+    ws = wb.create_sheet("Непопулярные авторы")
+
+    write_table(
+        ws,
+        ['Автор', 'Продано'],
+        [
+            [str(a), a.total]
+            for a in unpopular_authors
+        ]
+    )
+
+    genres = Genre.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'book__product__orderitem__quantity',
+                filter=Q(book__product__orderitem__order__in=orders)
+            ),
+            0
+        ) + Coalesce(
+            Sum(
+                'boardgame__product__orderitem__quantity',
+                filter=Q(boardgame__product__orderitem__order__in=orders)
+            ),
+            0
+        )
+    )
+
+    popular_genres, unpopular_genres = split_popular(genres)
+
+    ws = wb.create_sheet("Популярные жанры")
+
+    write_table(
+        ws,
+        ['Жанр', 'Продано'],
+        [
+            [g.name, g.total]
+            for g in popular_genres
+        ]
+    )
+
+    ws = wb.create_sheet("Непопулярные жанры")
+
+    write_table(
+        ws,
+        ['Жанр', 'Продано'],
+        [
+            [g.name, g.total]
+            for g in unpopular_genres
+        ]
+    )
+
+    tags = Tag.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'book__product__orderitem__quantity',
+                filter=Q(book__product__orderitem__order__in=orders)
+            ),
+            0
+        )
+    )
+
+    popular_tags, unpopular_tags = split_popular(tags)
+
+    ws = wb.create_sheet("Популярные теги")
+
+    write_table(
+        ws,
+        ['Тег', 'Продано'],
+        [
+            [t.name, t.total]
+            for t in popular_tags
+        ]
+    )
+
+    ws = wb.create_sheet("Непопулярные теги")
+
+    write_table(
+        ws,
+        ['Тег', 'Продано'],
+        [
+            [t.name, t.total]
+            for t in unpopular_tags
+        ]
+    )
 
     response = HttpResponse(
-        content_type=(
-            'application/vnd.openxmlformats-'
-            'officedocument.spreadsheetml.sheet'
-        )
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
     response[
         'Content-Disposition'
-    ] = 'attachment; filename=report.xlsx'
+    ] = f'attachment; filename="report_{period}.xlsx"'
 
     wb.save(response)
 
     return response
 
 
+
+def annotate_sales(qs, orders, relation_path):
+    return qs.annotate(
+        total=Coalesce(
+            Sum(
+                f'{relation_path}__product__orderitem__quantity',
+                filter=Q(**{f'{relation_path}__product__orderitem__order__in': orders})
+            ),
+            0
+        )
+    )
+
+def split_by_avg(qs):
+    items = list(qs)
+    avg = sum(i.total for i in items) / len(items) if items else 0
+
+    return (
+        [i for i in items if i.total > avg],
+        [i for i in items if i.total <= avg],
+    )
+
+def write_table(ws, headers, rows):
+    ws.append(headers)
+    for r in rows:
+        ws.append(r)
+
 @admin_required
 def dashboard(request):
 
     total_orders = Order.objects.count()
-
     total_products = Product.objects.count()
 
-    total_sales = sum(
-        order.total_price
-        for order in Order.objects.all()
-    )
+    total_sales = OrderItem.objects.aggregate(
+        total=Sum('quantity')
+    )['total'] or 0
+
+    sales_day = get_sales_by_period(1)
+    sales_week = get_sales_by_period(7)
+    sales_month = get_sales_by_period(30)
 
     popular_products = (
         OrderItem.objects
-        .values('product__name')
+        .values('product__id', 'product__name')
         .annotate(total_sold=Sum('quantity'))
         .order_by('-total_sold')[:5]
+    )
+
+    most_commented = (
+        Product.objects
+        .annotate(review_count=Count('reviews'))
+        .order_by('-review_count')[:5]
     )
 
     context = {
         'total_orders': total_orders,
         'total_products': total_products,
         'total_sales': total_sales,
+
+        'sales_day': sales_day,
+        'sales_week': sales_week,
+        'sales_month': sales_month,
+
         'popular_products': popular_products,
+        'most_commented': most_commented,
     }
 
-    return render(
-        request,
-        'admin_panel/dashboard.html',
-        context
-    )
+    return render(request, 'admin_panel/dashboard.html', context)
+
 
 @admin_required
 def reports(request):
 
-    date_from = request.GET.get(
-        'date_from'
+    period = request.GET.get('period', 'month')
+    since = get_period(period)
+
+    orders = Order.objects.filter(
+        created__gte=since
     )
 
-    date_to = request.GET.get(
-        'date_to'
+    items = OrderItem.objects.filter(
+        order__in=orders
     )
 
-    orders = Order.objects.all()
+    def split_popular(qs):
 
-    if date_from:
+        items_list = list(qs)
 
-        orders = orders.filter(
-            created__date__gte=parse_date(
-                date_from
+        avg = (
+            sum(i.total for i in items_list) / len(items_list)
+            if items_list else 0
+        )
+
+        popular = [
+            i for i in items_list
+            if i.total > avg
+        ]
+
+        unpopular = [
+            i for i in items_list
+            if i.total <= avg
+        ]
+
+        return popular, unpopular
+
+
+    top_products = (
+        items.values(
+            'product__id',
+            'product__name'
+        )
+        .annotate(
+            total=Coalesce(
+                Sum('quantity'),
+                0
             )
         )
-
-    if date_to:
-
-        orders = orders.filter(
-            created__date__lte=parse_date(
-                date_to
-            )
-        )
-
-    popular_books = (
-        OrderItem.objects
-        .filter(
-            product__book__isnull=False
-        )
-        .values('product__name')
-        .annotate(total=Sum('quantity'))
         .order_by('-total')
     )
 
-    popular_authors = (
-        Author.objects
-        .annotate(
-            total_sold=Sum(
-                'book__product__orderitem__quantity'
-            )
+
+    books = Book.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'product__orderitem__quantity',
+                filter=Q(
+                    product__orderitem__order__in=orders
+                )
+            ),
+            0
         )
-        .order_by('-total_sold')
     )
 
-    unsold_books = (
-        Book.objects
-        .annotate(
-            sold=Sum(
-                'product__orderitem__quantity'
-            )
-        )
-        .filter(sold__isnull=True)
+    popular_books, unpopular_books = split_popular(
+        books
     )
 
-    context = {
-        'popular_books': popular_books,
-        'popular_authors': popular_authors,
-        'unsold_books': unsold_books,
-    }
+
+    games = BoardGame.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'product__orderitem__quantity',
+                filter=Q(
+                    product__orderitem__order__in=orders
+                )
+            ),
+            0
+        )
+    )
+
+    popular_games, unpopular_games = split_popular(
+        games
+    )
+
+
+    stationery = Stationery.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'product__orderitem__quantity',
+                filter=Q(
+                    product__orderitem__order__in=orders
+                )
+            ),
+            0
+        )
+    )
+
+    popular_stationery, unpopular_stationery = split_popular(
+        stationery
+    )
+
+
+    authors = Author.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'book__product__orderitem__quantity',
+                filter=Q(
+                    book__product__orderitem__order__in=orders
+                )
+            ),
+            0
+        )
+    )
+
+    popular_authors, unpopular_authors = split_popular(
+        authors
+    )
+
+
+    genres = Genre.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'book__product__orderitem__quantity',
+                filter=Q(
+                    book__product__orderitem__order__in=orders
+                )
+            ),
+            0
+        ) + Coalesce(
+            Sum(
+                'boardgame__product__orderitem__quantity',
+                filter=Q(
+                    boardgame__product__orderitem__order__in=orders
+                )
+            ),
+            0
+        )
+    )
+
+    popular_genres, unpopular_genres = split_popular(
+        genres
+    )
+
+
+    tags = Tag.objects.annotate(
+        total=Coalesce(
+            Sum(
+                'book__product__orderitem__quantity',
+                filter=Q(
+                    book__product__orderitem__order__in=orders
+                )
+            ),
+            0
+        )
+    )
+
+    popular_tags, unpopular_tags = split_popular(
+        tags
+    )
+
+
+    products_rating = Product.objects.order_by(
+        '-rating',
+        '-rating_count'
+    )
 
     return render(
         request,
         'admin_panel/reports.html',
-        context
-    )
+        {
+            'period': period,
 
+            'products_rating': products_rating,
+            'top_products': top_products,
+
+            'popular_books': popular_books,
+            'unpopular_books': unpopular_books,
+
+            'popular_games': popular_games,
+            'unpopular_games': unpopular_games,
+
+            'popular_stationery': popular_stationery,
+            'unpopular_stationery': unpopular_stationery,
+
+            'popular_authors': popular_authors,
+            'unpopular_authors': unpopular_authors,
+
+            'popular_genres': popular_genres,
+            'unpopular_genres': unpopular_genres,
+
+            'popular_tags': popular_tags,
+            'unpopular_tags': unpopular_tags,
+        }
+    )

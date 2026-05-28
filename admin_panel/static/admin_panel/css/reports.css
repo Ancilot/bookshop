@@ -1,0 +1,325 @@
+/* admin_panel/css/reports.css */
+
+/* Общие стили */
+:root {
+    --primary: #4361ee;
+    --primary-dark: #3a56d4;
+    --secondary: #6c757d;
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #17a2b8;
+    --dark: #343a40;
+    --light: #f8f9fa;
+    --white: #ffffff;
+    --gray-100: #f8f9fa;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-400: #ced4da;
+    --gray-500: #adb5bd;
+    --gray-600: #6c757d;
+    --gray-700: #495057;
+    --gray-800: #343a40;
+    --gray-900: #212529;
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f1f5f9;
+    color: var(--gray-800);
+    line-height: 1.5;
+}
+
+/* Контейнер */
+.reports-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+/* Заголовок */
+.page-header {
+    margin-bottom: 32px;
+}
+
+.page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--gray-800) 0%, var(--primary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 8px;
+}
+
+.page-header p {
+    color: var(--gray-600);
+    font-size: 14px;
+}
+
+/* Панель управления */
+.control-panel {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.period-selector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.period-selector label {
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+.period-selector select {
+    padding: 8px 32px 8px 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius-sm);
+    font-size: 14px;
+    background: var(--white);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.period-selector select:hover {
+    border-color: var(--primary);
+}
+
+.period-selector select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.btn-apply {
+    padding: 8px 20px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-apply:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--success);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-export:hover {
+    background: #218838;
+    transform: translateY(-1px);
+    text-decoration: none;
+    color: white;
+}
+
+/* Секции отчетов */
+.report-section {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    margin-bottom: 32px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.section-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.section-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.section-header .badge {
+    margin-left: auto;
+    background: var(--gray-100);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--gray-600);
+}
+
+/* Двойная колонка */
+.two-columns {
+    display: flex;
+    gap: 24px;
+    padding: 24px;
+}
+
+.column {
+    flex: 1;
+    min-width: 0;
+}
+
+.column h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+/* Список элементов */
+.item-list {
+    list-style: none;
+}
+
+.item-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-100);
+    transition: background 0.2s;
+}
+
+.item-list li:hover {
+    background: var(--gray-50);
+    margin: 0 -8px;
+    padding: 12px 8px;
+}
+
+.item-name {
+    font-size: 14px;
+    color: var(--gray-700);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.item-sales {
+    font-weight: 600;
+    font-size: 14px;
+    margin-left: 16px;
+}
+
+.popular-sales {
+    color: #f59e0b;
+    background: #fef3c7;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.unpopular-sales {
+    color: var(--gray-500);
+    font-size: 13px;
+}
+
+.empty-message {
+    color: var(--gray-400);
+    text-align: center;
+    padding: 24px;
+    font-size: 14px;
+}
+
+/* Топ товаров таблица */
+.top-products-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.top-products-table th,
+.top-products-table td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.top-products-table th {
+    background: var(--gray-50);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-600);
+}
+
+.top-products-table td {
+    font-size: 14px;
+}
+
+.top-products-table tr:hover td {
+    background: var(--gray-50);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .reports-container {
+        padding: 16px;
+    }
+
+    .two-columns {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .control-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .period-selector {
+        justify-content: center;
+    }
+
+    .btn-export {
+        justify-content: center;
+    }
+
+    .section-header {
+        flex-wrap: wrap;
+    }
+
+    .section-header .badge {
+        margin-left: 0;
+    }
+}

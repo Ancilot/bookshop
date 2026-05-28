@@ -1,88 +1,430 @@
 {% extends "admin_panel/base.html" %}
+{% load static %}
 
-{% block title %}
-Отчеты
+{% block title %}Отчеты | Аналитика продаж{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin_panel/css/reports.css' %}">
 {% endblock %}
 
 {% block content %}
 
-<h1>Отчеты</h1>
-<a href="{% url 'admin_panel:export_excel' %}">
-    Скачать Excel
-</a>
+<div class="reports-container">
 
-<a href="{% url 'admin_panel:export_pdf' %}">
-    Скачать PDF
-</a>
+    <!-- HEADER -->
+    <div class="page-header">
+        <h1>Аналитика продаж</h1>
+        <p>
+            Статистика продаж, популярные и непопулярные товары
+            за выбранный период
+        </p>
+    </div>
 
-<form method="get">
+    <!-- CONTROL PANEL -->
+    <div class="control-panel">
 
-    <input type="date" name="date_from">
+        <form method="get" class="period-selector">
 
-    <input type="date" name="date_to">
+            <label>Период:</label>
 
-    <button type="submit">
-        Фильтр
-    </button>
+            <select name="period">
 
-</form>
+                <option value="day" {% if period == "day" %}selected{% endif %}>
+                    Сегодня
+                </option>
 
-<hr>
+                <option value="week" {% if period == "week" %}selected{% endif %}>
+                    Неделя
+                </option>
 
-<h2>Популярные книги</h2>
+                <option value="month" {% if period == "month" %}selected{% endif %}>
+                    Месяц
+                </option>
 
-<table class="report-table">
+                <option value="year" {% if period == "year" %}selected{% endif %}>
+                    Год
+                </option>
 
-    <tr>
-        <th>Книга</th>
-        <th>Продано</th>
-    </tr>
+            </select>
 
-    {% for item in popular_books %}
-    <tr>
-        <td>{{ item.product__name }}</td>
-        <td>{{ item.total }}</td>
-    </tr>
-    {% endfor %}
+            <button type="submit" class="btn-apply">
+                Применить
+            </button>
 
-</table>
+        </form>
 
-<br><br>
+        <a class="btn-export"
+           href="{% url 'admin_panel:export_excel' %}?period={{ period }}">
+            Экспорт Excel
+        </a>
 
-<h2>Популярные авторы</h2>
+    </div>
 
-<table class="report-table">
+    <!-- ===================================================== -->
+    <!-- TOP PRODUCTS (ПЕРЕНЕСЕНО ВЫШЕ) -->
+    <!-- ===================================================== -->
 
-    <tr>
-        <th>Автор</th>
-        <th>Продано</th>
-    </tr>
+    <div class="report-section">
 
-    {% for author in popular_authors %}
-    <tr>
-        <td>{{ author }}</td>
-        <td>{{ author.total_sold }}</td>
-    </tr>
-    {% endfor %}
+        <div class="section-header">
+            <h2>Проданные товары</h2>
+            <span class="badge">
+                {{ top_products|length }} товаров
+            </span>
+        </div>
 
-</table>
+        <div style="overflow-x:auto;">
 
-<br><br>
+            <table class="top-products-table">
 
-<h2>Невостребованные книги</h2>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Товар</th>
+                        <th>Продано</th>
+                    </tr>
+                </thead>
 
-<table class="report-table">
+                <tbody>
 
-    <tr>
-        <th>Книга</th>
-    </tr>
+                    {% for item in top_products %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.product__name|truncatechars:60 }}</td>
+                        <td>{{ item.total|default:0 }} шт</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">
+                            <div class="empty-message">
+                                Нет продаж за период
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
 
-    {% for book in unsold_books %}
-    <tr>
-        <td>{{ book.product.name }}</td>
-    </tr>
-    {% endfor %}
+                </tbody>
 
-</table>
+            </table>
+
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- PRODUCT RATING (ПЕРЕНЕСЕНО НИЖЕ) -->
+    <!-- ===================================================== -->
+
+    <div class="report-section">
+
+        <div class="section-header">
+            <h2>Рейтинг товаров</h2>
+            <span class="badge">
+                {{ products_rating|length }} товаров
+            </span>
+        </div>
+
+        <div style="overflow-x:auto;">
+
+            <table class="top-products-table">
+
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Товар</th>
+                        <th>Рейтинг</th>
+                        <th>Отзывов</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for product in products_rating %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ product.name|truncatechars:60 }}</td>
+                        <td>{{ product.rating|default:0 }}</td>
+                        <td>{{ product.rating_count|default:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-message">
+                                Нет данных
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+    <!-- BOOKS -->
+    <div class="report-section">
+
+        <div class="section-header">
+            <h2>Книги</h2>
+        </div>
+
+        <div class="two-columns">
+
+            <div class="column">
+                <h3>Популярные</h3>
+
+                <ul class="item-list">
+                    {% for item in popular_books %}
+                    <li>
+                        <span class="item-name">
+                            {{ item.product.name|truncatechars:50 }}
+                        </span>
+                        <span class="item-sales popular-sales">
+                            {{ item.total }} шт
+                        </span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+
+            <div class="column">
+                <h3>Непопулярные</h3>
+
+                <ul class="item-list">
+                    {% for item in unpopular_books %}
+                    <li>
+                        <span class="item-name">
+                            {{ item.product.name|truncatechars:50 }}
+                        </span>
+                        <span class="item-sales unpopular-sales">
+                            {{ item.total }} шт
+                        </span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- BOARD GAMES -->
+    <div class="report-section">
+        <div class="section-header">
+            <h2>Настольные игры</h2>
+        </div>
+
+        <div class="two-columns">
+
+            <div class="column">
+                <h3>Популярные</h3>
+                <ul class="item-list">
+                    {% for item in popular_games %}
+                    <li>
+                        <span class="item-name">
+                            {{ item.product.name|truncatechars:50 }}
+                        </span>
+                        <span class="item-sales popular-sales">
+                            {{ item.total }} шт
+                        </span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="column">
+                <h3>Непопулярные</h3>
+                <ul class="item-list">
+                    {% for item in unpopular_games %}
+                    <li>
+                        <span class="item-name">
+                            {{ item.product.name|truncatechars:50 }}
+                        </span>
+                        <span class="item-sales unpopular-sales">
+                            {{ item.total }} шт
+                        </span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- STATIONERY -->
+    <div class="report-section">
+        <div class="section-header">
+            <h2>Канцелярия</h2>
+        </div>
+
+        <div class="two-columns">
+
+            <div class="column">
+                <h3>Популярные</h3>
+                <ul class="item-list">
+                    {% for item in popular_stationery %}
+                    <li>
+                        <span class="item-name">
+                            {{ item.product.name|truncatechars:50 }}
+                        </span>
+                        <span class="item-sales popular-sales">
+                            {{ item.total }} шт
+                        </span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="column">
+                <h3>Непопулярные</h3>
+                <ul class="item-list">
+                    {% for item in unpopular_stationery %}
+                    <li>
+                        <span class="item-name">
+                            {{ item.product.name|truncatechars:50 }}
+                        </span>
+                        <span class="item-sales unpopular-sales">
+                            {{ item.total }} шт
+                        </span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- AUTHORS -->
+    <div class="report-section">
+        <div class="section-header">
+            <h2>Авторы</h2>
+        </div>
+
+        <div class="two-columns">
+
+            <div class="column">
+                <h3>Популярные</h3>
+                <ul class="item-list">
+                    {% for item in popular_authors %}
+                    <li>
+                        <span class="item-name">{{ item }}</span>
+                        <span class="item-sales popular-sales">{{ item.total }} шт</span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="column">
+                <h3>Непопулярные</h3>
+                <ul class="item-list">
+                    {% for item in unpopular_authors %}
+                    <li>
+                        <span class="item-name">{{ item }}</span>
+                        <span class="item-sales unpopular-sales">{{ item.total }} шт</span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- GENRES -->
+    <div class="report-section">
+        <div class="section-header">
+            <h2>Жанры</h2>
+        </div>
+
+        <div class="two-columns">
+
+            <div class="column">
+                <h3>Популярные</h3>
+                <ul class="item-list">
+                    {% for item in popular_genres %}
+                    <li>
+                        <span class="item-name">{{ item.name }}</span>
+                        <span class="item-sales popular-sales">{{ item.total }} шт</span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="column">
+                <h3>Непопулярные</h3>
+                <ul class="item-list">
+                    {% for item in unpopular_genres %}
+                    <li>
+                        <span class="item-name">{{ item.name }}</span>
+                        <span class="item-sales unpopular-sales">{{ item.total }} шт</span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TAGS -->
+    <div class="report-section">
+        <div class="section-header">
+            <h2>Теги</h2>
+        </div>
+
+        <div class="two-columns">
+
+            <div class="column">
+                <h3>Популярные</h3>
+                <ul class="item-list">
+                    {% for item in popular_tags %}
+                    <li>
+                        <span class="item-name">{{ item.name }}</span>
+                        <span class="item-sales popular-sales">{{ item.total }} шт</span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="column">
+                <h3>Непопулярные</h3>
+                <ul class="item-list">
+                    {% for item in unpopular_tags %}
+                    <li>
+                        <span class="item-name">{{ item.name }}</span>
+                        <span class="item-sales unpopular-sales">{{ item.total }} шт</span>
+                    </li>
+                    {% empty %}
+                    <li class="empty-message">Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+</div>
 
 {% endblock %}

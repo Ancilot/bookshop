@@ -1,42 +1,144 @@
 {% extends "admin_panel/base.html" %}
+{% load static %}
+
+{% block title %}Дашборд | Админ панель{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin_panel/css/dashboard.css' %}">
+{% endblock %}
 
 {% block content %}
+<div class="dashboard-container">
 
-<h1>Админ панель</h1>
-
-<div class="stats">
-
-    <div class="card">
-        <h3>Заказы</h3>
-        <p>{{ total_orders }}</p>
+    <!-- HEADER -->
+    <div class="welcome-header">
+        <h1>Добро пожаловать в админ-панель</h1>
+        <p>Управляйте товарами, заказами и анализируйте продажи</p>
     </div>
 
-    <div class="card">
-        <h3>Продажи</h3>
-        <p>{{ total_sales }} ₽</p>
+    <!-- STATS -->
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <h3>Заказы</h3>
+            <div class="stat-value">{{ total_orders }}</div>
+            <div class="stat-trend">всего заказов</div>
+        </div>
+
+        <div class="stat-card">
+            <h3>Всего продаж</h3>
+            <div class="stat-value">{{ total_sales }}</div>
+            <div class="stat-trend">единиц товара</div>
+        </div>
+
+        <div class="stat-card">
+            <h3>За день</h3>
+            <div class="stat-value">{{ sales_day }}</div>
+            <div class="stat-trend">сегодня</div>
+        </div>
+
+        <div class="stat-card">
+            <h3>За неделю</h3>
+            <div class="stat-value">{{ sales_week }}</div>
+            <div class="stat-trend">7 дней</div>
+        </div>
+
+        <div class="stat-card">
+            <h3>За месяц</h3>
+            <div class="stat-value">{{ sales_month }}</div>
+            <div class="stat-trend">30 дней</div>
+        </div>
+
+        <div class="stat-card">
+            <h3>Товары</h3>
+            <div class="stat-value">{{ total_products }}</div>
+            <div class="stat-trend">в каталоге</div>
+        </div>
+
     </div>
 
-    <div class="card">
-        <h3>Товары</h3>
-        <p>{{ total_products }}</p>
+    <!-- MOST COMMENTED -->
+    <div class="section">
+
+        <div class="section-header">
+            <h2>Самые обсуждаемые товары</h2>
+            <div class="section-badge">по отзывам</div>
+        </div>
+
+        {% if most_commented %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th style="width: 140px;">Отзывов</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in most_commented %}
+                <tr>
+                    <td>
+                        <a href="{% url 'shop:product_detail' product.id product.slug %}">
+                            {{ product.name }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="review-count">{{ product.review_count }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <p>Нет отзывов на товары</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- TOP SELLING -->
+    <div class="section">
+
+        <div class="section-header">
+            <h2>Топ продаж</h2>
+            <div class="section-badge">лидеры</div>
+        </div>
+
+        {% if popular_products %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Товар</th>
+                    <th style="width: 140px;">Продано</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in popular_products %}
+                <tr>
+                    <td>
+                        <span class="rank-badge
+                            {% if forloop.counter == 1 %}rank-1
+                            {% elif forloop.counter == 2 %}rank-2
+                            {% elif forloop.counter == 3 %}rank-3{% endif %}">
+                            {{ forloop.counter }}
+                        </span>
+                    </td>
+                    <td><strong>{{ item.product__name }}</strong></td>
+                    <td>
+                        <span class="sales-count">{{ item.total_sold }} шт</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <p>Нет данных о продажах</p>
+        </div>
+        {% endif %}
+
     </div>
 
 </div>
-
-<h2>Популярные товары</h2>
-
-<table>
-    <tr>
-        <th>Товар</th>
-        <th>Продано</th>
-    </tr>
-
-    {% for item in popular_products %}
-    <tr>
-        <td>{{ item.product__name }}</td>
-        <td>{{ item.total_sold }}</td>
-    </tr>
-    {% endfor %}f
-</table>
-
 {% endblock %}

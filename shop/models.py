@@ -8,6 +8,8 @@ from decimal import Decimal
 from django.utils.timezone import now
 from transliterate import translit
 from django.utils.text import slugify
+from unidecode import unidecode
+
 
 class Price(models.Model):
     product = models.ForeignKey(
@@ -165,7 +167,7 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
     def generate_unique_slug(self):
-        base_slug = slugify(self.name, allow_unicode=True)
+        base_slug = slugify(unidecode(self.name))
         slug = base_slug
         counter = 1
 

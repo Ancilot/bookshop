@@ -253,6 +253,9 @@ def user_login(request):
             user = form.get_user()
             login(request, user)
 
+            if user.is_superuser:
+                return redirect('admin_panel:dashboard')
+
             return redirect('account:dashboard')
 
         else:
