@@ -11,12 +11,21 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('edit/', views.edit, name='edit'),
-    path('password-change/', auth_views.PasswordChangeView.as_view(
-        template_name='account/password_change.html',
-        success_url='done'
-    ), name='password_change'),
+    path('verify-email/', views.verify_email, name='verify_email'),
+    path(
+        'password-change/',
+        views.CustomPasswordChangeView.as_view(),
+        name='password_change'
+    ),
     path('password-change/done/', auth_views.PasswordChangeDoneView.as_view(
         template_name='account/password_change_done.html'
     ), name='password_change_done'),
+    path('password-change-request/', views.password_change_request, name='password_change_request'),
+    path('password-change-confirm/', views.password_change_confirm, name='password_change_confirm'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('reset-confirm/', views.reset_confirm, name='reset_confirm'),
+    path('set-new-password/', views.set_new_password, name='set_new_password'),
+    path('confirm-email-change/', views.confirm_email_change, name='confirm_email_change'),
+    path('change-email/', views.change_email, name='change_email'),
 
 ]

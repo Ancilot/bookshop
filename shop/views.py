@@ -2,25 +2,123 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 
-from .models import Product, Category, Review
+from .models import Product, Category, Review, Genre, Tag
 from orders.models import OrderItem
 from .forms import ReviewForm
+
+
 
 
 def product_list(request, category_slug=None):
     category = None
     categories = Category.objects.all()
-    products = Product.objects.filter(available=True)
+
+    products = Product.objects.filter(
+        available=True
+    )
 
     if category_slug:
-        category = get_object_or_404(Category, slug=category_slug)
-        products = products.filter(category=category)
+        category = get_object_or_404(
+            Category,
+            slug=category_slug
+        )
+
+        products = products.filter(
+            category=category
+        )
+
+    # ===== ФИЛЬТР ПО ЖАНРУ =====
+
+    genre_id = request.GET.get('genre')
+
+    if genre_id:
+
+        # книги
+        if category and category.name == 'Книги':
+            products = products.filter(
+                book__genres__id=genre_id
+            )
+
+        # настольные игры
+        elif category and category.name == 'Настольные игры':
+            products = products.filter(
+                board_game__genres__id=genre_id
+            )
+
+        else:
+            products = products.filter(
+                Q(book__genres__id=genre_id) |
+                Q(board_game__genres__id=genre_id)
+            )
+
+    # ===== ФИЛЬТР ПО ТЕГУ =====
+
+    tag_id = request.GET.get('tag')
+
+    if tag_id:
+        products = products.filter(
+            book__tags__id=tag_id
+        )
+
+    products = products.distinct()
+
+    # ===== СОРТИРОВКА =====
+
+    sort = request.GET.get('sort')
+
+    if sort == 'rating_desc':
+        products = products.order_by(
+            '-rating',
+            '-rating_count'
+        )
+
+    elif sort == 'rating_asc':
+        products = products.order_by(
+            'rating',
+            '-rating_count'
+        )
+
+    elif sort == 'popular':
+        products = products.order_by(
+            '-rating_count',
+            '-rating'
+        )
+
+    else:
+        products = products.order_by('name')
+
+    # ===== ДАННЫЕ ДЛЯ ФИЛЬТРОВ =====
+
+    genres = Genre.objects.none()
+    tags = Tag.objects.none()
+
+    # книги
+    if category and category.name == 'Книги':
+        genres = Genre.objects.filter(
+            book__isnull=False
+        ).distinct()
+
+        tags = Tag.objects.all()
+
+    # настольные игры
+    elif category and category.name == 'Настольные игры':
+        genres = Genre.objects.filter(
+            boardgame__isnull=False
+        ).distinct()
+
+    # все товары
+    else:
+        genres = Genre.objects.all()
+        tags = Tag.objects.all()
 
     return render(request, 'shop/product/list.html', {
         'category': category,
         'categories': categories,
-        'products': products
+        'products': products,
+        'genres': genres,
+        'tags': tags,
     })
+
 
 
 def search_products(request):

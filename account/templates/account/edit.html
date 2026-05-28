@@ -15,7 +15,7 @@
 
         <h1>Редактирование профиля</h1>
 
-       {% if success %}
+        {% if success %}
             <div class="success-badge">
                 {{ success }}
             </div>
@@ -28,7 +28,6 @@
         {% endif %}
 
         <form method="post" enctype="multipart/form-data">
-
             {% csrf_token %}
 
             <div class="form-section">
@@ -46,6 +45,16 @@
                         {% endif %}
                     </p>
                 {% endfor %}
+
+                <div class="email-change-row">
+                    <div class="current-email">
+                        Текущий email: <b>{{ user_form.instance.email }}</b>
+                    </div>
+
+                    <a href="{% url 'account:change_email' %}" class="change-email-btn">
+                        Сменить email
+                    </a>
+                </div>
             </div>
 
             <div class="form-section">
