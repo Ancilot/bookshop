@@ -142,6 +142,12 @@ class Product(models.Model):
         price = self.prices.first()
         return price.value if price else None
 
+    def clear_category_data(self):
+        for rel in ['book', 'board_game', 'stationery']:
+            obj = getattr(self, rel, None)
+            if obj:
+                obj.delete()
+
     @property
     def price(self):
         return self.get_price_value()

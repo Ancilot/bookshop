@@ -263,9 +263,13 @@ def product_create(request):
 
             product = product_form.save()
 
+            product.clear_category_data()
+
             price = price_form.save(commit=False)
             price.product = product
             price.save()
+
+
 
             # category save
             if category_form:
@@ -278,29 +282,37 @@ def product_create(request):
 
             # изображения
             images = request.FILES.getlist('images')
+            temp_ids = request.POST.getlist('temp_ids')  # из фронта
+
+            temp_map = {}
             new_images = []
 
-            for index, image in enumerate(images):
+            for i, image in enumerate(images):
+                temp_id = temp_ids[i] if i < len(temp_ids) else None
+
                 img = ProductImage.objects.create(
                     product=product,
                     image=image,
                     is_main=False
                 )
+
+                if temp_id:
+                    temp_map[temp_id] = img
+
                 new_images.append(img)
 
             main_image_value = request.POST.get('main_image')
 
             if main_image_value:
-                product.images.update(is_main=False)
+                ProductImage.objects.filter(product=product).update(is_main=False)
 
-                if main_image_value.startswith('new_'):
-                    try:
-                        idx = int(main_image_value.replace('new_', ''))
-                        if idx < len(new_images):
-                            new_images[idx].is_main = True
-                            new_images[idx].save()
-                    except ValueError:
-                        pass
+                if main_image_value.startswith('temp_'):
+                    temp_id = main_image_value.replace('temp_', '')
+
+                    img = temp_map.get(temp_id)
+                    if img:
+                        img.is_main = True
+                        img.save()
 
             return redirect('admin_panel:product_list')
 
@@ -432,6 +444,8 @@ def product_update(request, id):
 
             product = product_form.save()
 
+            product.clear_category_data()
+
             if price_form.is_valid():
                 price_value = price_form.cleaned_data['value']
 
@@ -451,7 +465,7 @@ def product_update(request, id):
                 if hasattr(category_form, "save_m2m"):
                     category_form.save_m2m()
 
-            # цдаление изображения
+            # удаление изображений
             delete_ids = request.POST.getlist('delete_image')
 
             if delete_ids:
@@ -460,42 +474,52 @@ def product_update(request, id):
                     product=product
                 ).delete()
 
-            # обновление изображения
+            # новые изображения
             uploaded_images = request.FILES.getlist('images')
+            temp_ids = request.POST.getlist('temp_ids')
 
+            temp_map = {}
             new_images = []
 
-            for img in uploaded_images:
-                new_images.append(
-                    ProductImage.objects.create(
-                        product=product,
-                        image=img,
-                        is_main=False
-                    )
+            for i, img_file in enumerate(uploaded_images):
+                temp_id = temp_ids[i] if i < len(temp_ids) else None
+
+                img = ProductImage.objects.create(
+                    product=product,
+                    image=img_file,
+                    is_main=False
                 )
 
-            # основное изображение
+                if temp_id:
+                    temp_map[temp_id] = img
+
+                new_images.append(img)
+
+            # главное изображение
             main_image = request.POST.get('main_image')
 
             if main_image:
                 product.images.update(is_main=False)
 
-                if main_image.startswith('new_'):
+                # старые изображения
+                if main_image.startswith('old_'):
                     try:
-                        i = int(main_image.replace('new_', ''))
-                        if i < len(new_images):
-                            new_images[i].is_main = True
-                            new_images[i].save()
+                        img_id = int(main_image.replace('old_', ''))
+                        ProductImage.objects.filter(
+                            id=img_id,
+                            product=product
+                        ).update(is_main=True)
                     except ValueError:
                         pass
 
-                elif main_image.startswith('old_'):
-                    img_id = main_image.replace('old_', '')
-                    ProductImage.objects.filter(
-                        id=img_id,
-                        product=product
-                    ).update(is_main=True)
+                # НОВАЯ ЛОГИКА (temp_id вместо new_индексов)
+                elif main_image.startswith('temp_'):
+                    temp_id = main_image.replace('temp_', '')
 
+                    img = temp_map.get(temp_id)
+                    if img:
+                        img.is_main = True
+                        img.save()
             return redirect('admin_panel:product_list')
 
         else:

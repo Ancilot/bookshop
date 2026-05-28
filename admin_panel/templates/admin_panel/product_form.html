@@ -126,6 +126,7 @@
 <script>
 
 document.addEventListener('DOMContentLoaded', function () {
+
 function validateCategoryFields() {
     let valid = true;
 
@@ -157,178 +158,179 @@ function validateCategoryFields() {
 const priceField = document.getElementById('id_value');
 
 if (priceField) {
-
     priceField.addEventListener('keypress', function (e) {
-
         const allowed = /[0-9,]/;
-
         if (!allowed.test(e.key)) {
             e.preventDefault();
         }
     });
 }
-    const categoryField = document.getElementById('id_category');
-    const categoryBox = document.getElementById('category-fields');
 
-    const form = document.querySelector('.product-form');
-    const categoryError = document.getElementById('category-error');
+const categoryField = document.getElementById('id_category');
+const categoryBox = document.getElementById('category-fields');
+const form = document.querySelector('.product-form');
+const categoryError = document.getElementById('category-error');
 
-    if (form && categoryField) {
+if (form && categoryField) {
 
-       form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', function (e) {
 
-            let ok = true;
+        let ok = true;
 
-            // 1. категория
-                if (!categoryField.value) {
-                    categoryError.style.display = 'block';
-                    ok = false;
-            } else {
-                categoryError.style.display = 'none';
-            }
-
-            // 2. название
-            const nameField = document.getElementById('id_name');
-            const nameError = document.querySelector('[data-error="name"]');
-
-            if (!nameField.value.trim()) {
-                if (nameError) nameError.style.display = 'block';
-                ok = false;
-            } else {
-                   if (nameError) nameError.style.display = 'none';
-            }
-
-             // 3. цена
-            const priceField = document.getElementById('id_value');
-            const priceError = document.querySelector('[data-error="value"]');
-
-            if (!priceField.value.trim()) {
-                if (priceError) priceError.style.display = 'block';
-                ok = false;
-            } else {
-                if (priceError) priceError.style.display = 'none';
-            }
-
-            // 4. доп поля
-            if (!validateCategoryFields()) {
-                 ok = false;
-            }
-
-            if (!ok) {
-                e.preventDefault();
-            }
-        });
-
-
-        categoryField.addEventListener('change', function () {
-            if (this.value) {
+        if (!categoryField.value) {
+            categoryError.style.display = 'block';
+            ok = false;
+        } else {
             categoryError.style.display = 'none';
-            }
-        });
-    }
-    if (categoryField && categoryBox) {
-
-        function loadCategoryForm(categoryId) {
-
-            if (!categoryId) {
-                categoryBox.innerHTML = "";
-                return;
-            }
-
-            fetch(`/admin-panel/ajax/load-category-form/?category_id=${categoryId}&product_id={{ product.id }}`)
-                .then(r => r.json())
-                .then(data => {
-                    categoryBox.innerHTML = data.html;
-                })
-                .catch(err => console.error(err));
         }
 
-        loadCategoryForm(categoryField.value);
+        const nameField = document.getElementById('id_name');
+        const nameError = document.querySelector('[data-error="name"]');
 
-        categoryField.addEventListener('change', function () {
-            loadCategoryForm(this.value);
-        });
-    }
+        if (!nameField.value.trim()) {
+            if (nameError) nameError.style.display = 'block';
+            ok = false;
+        } else {
+            if (nameError) nameError.style.display = 'none';
+        }
 
-    const container = document.getElementById('images-container');
-    const preview = document.getElementById('preview-container');
-    const addBtn = document.getElementById('add-image-btn');
+        const priceField = document.getElementById('id_value');
+        const priceError = document.querySelector('[data-error="value"]');
 
-    function rebuildPreview() {
+        if (!priceField.value.trim()) {
+            if (priceError) priceError.style.display = 'block';
+            ok = false;
+        } else {
+            if (priceError) priceError.style.display = 'none';
+        }
 
-        preview.innerHTML = '';
+        if (!validateCategoryFields()) {
+            ok = false;
+        }
 
-        document.querySelectorAll('.image-input').forEach((input, index) => {
-
-            if (!input.files.length) return;
-
-            const file = input.files[0];
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-
-                const div = document.createElement('div');
-                div.classList.add('image-card');
-
-                div.innerHTML = `
-                    <img src="${e.target.result}" alt="preview">
-
-                    <div class="image-actions">
-
-                        <label class="radio-label">
-                            <input type="radio"
-                                   name="main_image"
-                                   value="new_${index}">
-                            Главное изображение
-                        </label>
-
-                        <button type="button" class="delete-new delete-btn">
-                            ✕
-                        </button>
-
-                    </div>
-                `;
-
-                preview.appendChild(div);
-
-                div.querySelector('.delete-new').addEventListener('click', () => {
-                    input.value = "";
-                    div.remove();
-                });
-            };
-
-            reader.readAsDataURL(file);
-        });
-    }
-
-    addBtn.addEventListener('click', () => {
-
-        const input = document.createElement('input');
-
-        input.type = 'file';
-        input.name = 'images';
-        input.classList.add('image-input');
-
-        input.addEventListener('change', rebuildPreview);
-
-        container.appendChild(input);
-
-        input.click();
+        if (!ok) {
+            e.preventDefault();
+        }
     });
 
+    categoryField.addEventListener('change', function () {
+        if (this.value) {
+            categoryError.style.display = 'none';
+        }
+    });
+}
+
+if (categoryField && categoryBox) {
+
+    function loadCategoryForm(categoryId) {
+
+        if (!categoryId) {
+            categoryBox.innerHTML = "";
+            return;
+        }
+
+        fetch(`/admin-panel/ajax/load-category-form/?category_id=${categoryId}&product_id={{ product.id }}`)
+            .then(r => r.json())
+            .then(data => {
+                categoryBox.innerHTML = data.html;
+            })
+            .catch(err => console.error(err));
+    }
+
+    loadCategoryForm(categoryField.value);
+
+    categoryField.addEventListener('change', function () {
+        loadCategoryForm(this.value);
+    });
+}
+
+const container = document.getElementById('images-container');
+const preview = document.getElementById('preview-container');
+const addBtn = document.getElementById('add-image-btn');
+
+addBtn.addEventListener('click', () => {
+
+    const input = document.createElement('input');
+
+    input.type = 'file';
+    input.name = 'images';
+    input.classList.add('image-input');
+
+    input.dataset.tempId = crypto.randomUUID();
+
+    input.addEventListener('change', rebuildPreview);
+
+    container.appendChild(input);
+
+    input.click();
+});
+
+function rebuildPreview() {
+
+    preview.innerHTML = '';
+
+    document.querySelectorAll('.image-input').forEach((input) => {
+
+        if (!input.files.length) return;
+
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+
+            const div = document.createElement('div');
+            div.classList.add('image-card');
+
+            const tempId = input.dataset.tempId;
+
+            div.innerHTML = `
+                <img src="${e.target.result}" alt="preview">
+
+                <div class="image-actions">
+
+                    <label class="radio-label">
+                        <input type="radio"
+                            name="main_image"
+                            value="temp_${tempId}">
+                        Главное изображение
+                    </label>
+
+                    <button type="button" class="delete-new delete-btn">
+                        ✕
+                    </button>
+
+                </div>
+            `;
+
+            preview.appendChild(div);
+
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'temp_ids';
+            hidden.value = tempId;
+            form.appendChild(hidden);
+
+            div.querySelector('.delete-new').addEventListener('click', () => {
+                input.value = "";
+                div.remove();
+            });
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+
+// input live validation
 document.addEventListener('input', function(e) {
+
     const error = document.querySelector(`[data-error="${e.target.name}"]`);
     if (error && e.target.value) {
         error.style.display = 'none';
     }
 
-    // Год
     if (e.target.name.includes('year')) {
-
-        e.target.value = e.target.value
-            .replace(/\D/g, '') // только цифры
-            .slice(0, 4);       // максимум 4 цифры
-
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
         const currentYear = new Date().getFullYear();
 
         if (parseInt(e.target.value) > currentYear) {
@@ -336,35 +338,30 @@ document.addEventListener('input', function(e) {
         }
     }
 
-    // Страницы
     if (e.target.name.includes('pages')) {
-
-        e.target.value = e.target.value
-            .replace(/\D/g, '') // только цифры
-            .slice(0, 5);       // максимум 5 цифр
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5);
     }
 });
-    document.querySelectorAll('.image-input')
-        .forEach(input => input.addEventListener('change', rebuildPreview));
 
-    document.addEventListener('click', function(e) {
 
-        if (e.target.classList.contains('delete-old')) {
+// delete old images
+document.addEventListener('click', function(e) {
 
-            const item = e.target.closest('.img-item');
-            const id = item.dataset.id;
+    if (e.target.classList.contains('delete-old')) {
 
-            item.remove();
+        const item = e.target.closest('.img-item');
+        const id = item.dataset.id;
 
-            const input = document.createElement('input');
+        item.remove();
 
-            input.type = 'hidden';
-            input.name = 'delete_image';
-            input.value = id;
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'delete_image';
+        input.value = id;
 
-            document.querySelector('form').appendChild(input);
-        }
-    });
+        document.querySelector('form').appendChild(input);
+    }
+});
 
 });
 
